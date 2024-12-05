@@ -1,24 +1,50 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Label, TextInput } from "flowbite-react";
+import { AuthContext } from "../../contexts/AuthContext";
 import AuthLayout from "../../layouts/AuthLayout";
 
 function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useContext(AuthContext);
+
+  const handleLogin = async (e) => {
+    setLoading(true);
+    e.preventDefault();
+    try {
+      await login(email, password);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthLayout title="Sign in to your account">
-      <form className="space-y-4 md:space-y-6" action="#">
+      <form className="space-y-4 md:space-y-6" onSubmit={handleLogin}>
         <div>
           <Label htmlFor="email" value="Email" className="block mb-2" />
           <TextInput
             type="email"
             id="email"
             placeholder="name@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
         <div>
           <Label htmlFor="password" value="Password" className="block mb-2" />
-          <TextInput type="password" id="password" required />
+          <TextInput
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-start">
@@ -33,7 +59,7 @@ function Login() {
             </div>
             <div className="ml-3 text-sm">
               <label
-                for="remember"
+                htmlFor="remember"
                 className="text-gray-500 dark:text-gray-300"
               >
                 Remember me

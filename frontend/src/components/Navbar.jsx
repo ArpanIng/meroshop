@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
-import { Dropdown } from "flowbite-react";
-
+import { Button, Dropdown } from "flowbite-react";
 import {
   HiCog,
   HiCurrencyDollar,
   HiOutlineShoppingCart,
   HiLogout,
+  HiOutlineUserCircle,
   HiViewGrid,
 } from "react-icons/hi";
+import { AuthContext } from "../contexts/AuthContext";
 
 function Navbar() {
+  const { isAuthenticated, handleLogout } = useContext(AuthContext);
   return (
     <nav className="bg-white dark:bg-gray-800 antialiased">
       <div className="max-w-screen-xl px-4 mx-auto 2xl:px-0 py-4">
@@ -45,7 +47,7 @@ function Navbar() {
                 <a
                   href="#"
                   title=""
-                  class="flex text-sm font-medium text-gray-900 hover:text-primary-700 dark:text-white dark:hover:text-primary-500"
+                  className="flex text-sm font-medium text-gray-900 hover:text-primary-700 dark:text-white dark:hover:text-primary-500"
                 >
                   Best Sellers
                 </a>
@@ -65,71 +67,48 @@ function Navbar() {
               </button>
             </Link>
 
-            <Dropdown label="Account" color="light">
-              <Dropdown.Header>
-                <span className="block text-sm">Bonnie Green</span>
-                <span className="block truncate text-sm font-medium">
-                  bonnie@flowbite.com
-                </span>
-              </Dropdown.Header>
-              <Dropdown.Item icon={HiCurrencyDollar}>My Account</Dropdown.Item>
-              <Dropdown.Item icon={HiCurrencyDollar}>My Orders</Dropdown.Item>
-              <Dropdown.Item icon={HiViewGrid}>Dashboard</Dropdown.Item>
-              <Dropdown.Item icon={HiCog}>Settings</Dropdown.Item>
-              <Dropdown.Divider />
-              <Dropdown.Item icon={HiLogout}>Sign out</Dropdown.Item>
-            </Dropdown>
-
-            <button
-              type="button"
-              data-collapse-toggle="navbar-menu"
-              aria-controls="navbar-menu"
-              aria-expanded="false"
-              className="inline-flex lg:hidden items-center justify-center hover:bg-gray-100 rounded-md dark:hover:bg-gray-700 p-2 text-gray-900 dark:text-white"
-            >
-              <span className="sr-only">Open Menu</span>
-              <svg
-                className="w-5 h-5"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-width="2"
-                  d="M5 7h14M5 12h14M5 17h14"
-                />
-              </svg>
-            </button>
+            {isAuthenticated ? (
+              <>
+                <Dropdown label="Account" color="light">
+                  <Dropdown.Header>
+                    <span className="block text-sm">Bonnie Green</span>
+                    <span className="block truncate text-sm font-medium">
+                      bonnie@flowbite.com
+                    </span>
+                  </Dropdown.Header>
+                  <Dropdown.Item icon={HiCurrencyDollar}>
+                    My Account
+                  </Dropdown.Item>
+                  <Link to="/profile/me">
+                    <Dropdown.Item icon={HiOutlineUserCircle}>
+                      Profile
+                    </Dropdown.Item>
+                  </Link>
+                  <Dropdown.Item icon={HiViewGrid}>Dashboard</Dropdown.Item>
+                  <Link to="/settings">
+                    <Dropdown.Item icon={HiCog}>Settings</Dropdown.Item>
+                  </Link>
+                  <Dropdown.Divider />
+                  <Dropdown.Item icon={HiLogout} onClick={handleLogout}>
+                    Sign out
+                  </Dropdown.Item>
+                </Dropdown>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button color="blue" type="button">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button color="blue" type="button">
+                    Register
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
-        </div>
-
-        <div
-          id="navbar-menu"
-          className="bg-gray-50 dark:bg-gray-700 dark:border-gray-600 border border-gray-200 rounded-lg py-3 hidden px-4 mt-4"
-        >
-          <ul className="text-gray-900 dark:text-white text-sm font-medium dark:text-white space-y-3">
-            <li>
-              <a
-                href="#"
-                className="hover:text-primary-700 dark:hover:text-primary-500"
-              >
-                Home
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="hover:text-primary-700 dark:hover:text-primary-500"
-              >
-                Best Sellers
-              </a>
-            </li>
-          </ul>
         </div>
       </div>
     </nav>
