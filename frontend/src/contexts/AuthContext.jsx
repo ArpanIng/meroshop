@@ -8,6 +8,7 @@ export const AuthContext = createContext();
 
 function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,8 @@ function AuthProvider({ children }) {
     } catch (error) {
       console.error("Error refreshing token:", error);
       setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -36,6 +39,7 @@ function AuthProvider({ children }) {
     const token = localStorage.getItem(ACCESS_TOKEN);
     if (!token) {
       setIsAuthenticated(false);
+      setIsLoading(false);
       return;
     }
 
@@ -48,6 +52,7 @@ function AuthProvider({ children }) {
       await handleRefreshToken();
     } else {
       setIsAuthenticated(true); // user is logged in
+      setIsLoading(false);
     }
   };
 
@@ -97,9 +102,9 @@ function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, register, login, handleLogout }}
+      value={{ isAuthenticated, isLoading, register, login, handleLogout }}
     >
-      {children}
+      {!isLoading ? children : <div>Loading...</div>}{" "}
     </AuthContext.Provider>
   );
 }
