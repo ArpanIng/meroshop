@@ -1,8 +1,8 @@
 import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Label, TextInput } from "flowbite-react";
-import { AuthContext } from "../../contexts/AuthContext";
-import AuthLayout from "../../layouts/AuthLayout";
+import { AuthContext } from "../../../contexts/AuthContext";
+import AuthLayout from "../../../layouts/AuthLayout";
 
 function Login() {
   const [email, setEmail] = useState("");

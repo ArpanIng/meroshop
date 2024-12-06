@@ -1,8 +1,8 @@
 import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Label, TextInput } from "flowbite-react";
-import AuthLayout from "../../layouts/AuthLayout";
-import { AuthContext } from "../../contexts/AuthContext";
+import { AuthContext } from "../../../contexts/AuthContext";
+import AuthLayout from "../../../layouts/AuthLayout";
 
 function Register() {
   const [firstName, setFirstName] = useState("");

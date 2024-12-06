@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .serializers import UserRegistrationSerializer, UserSerializer, ProfileSerializer
 from .models import Profile
@@ -32,17 +33,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     """Display profile of the request user."""
 
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = ProfileSerializer
+    serializer_class = UserSerializer
 
     def get_object(self):
-        return self.request.user.profile
-
-
-class UserProfileView(generics.RetrieveAPIView):
-    queryset = Profile.objects.all()
-    permission_classes = [permissions.AllowAny]
-    serializer_class = ProfileSerializer
-
-    def get_object(self):
-        username = self.kwargs.get('username')
-        return Profile.objects.get(user__username=username)
+        return self.request.user

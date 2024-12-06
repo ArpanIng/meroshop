@@ -40,7 +40,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ["city", "state", "address", "phone_number", "profile_picture"]
+
+
 class UserSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
     class Meta:
         model = get_user_model()
         fields = [
@@ -49,13 +57,9 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "username",
             "email",
+            "profile",
         ]
-
-
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ["user", "city", "state", "address", "phone_number", "profile_picture"]
         extra_kwargs = {
-            "user": {"read_only": True},
+            "first_name": {"required": True},
+            "last_name": {"required": True},
         }

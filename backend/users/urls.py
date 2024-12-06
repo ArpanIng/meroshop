@@ -12,5 +12,4 @@ urlpatterns = [
     path("auth/register/", views.UserRegistrationView.as_view()),
     path("users/", views.UserListView.as_view()),
     path("users/me/", views.ProfileView.as_view()),
-    path("users/profile/<str:username>/", views.UserProfileView.as_view()),
 ]
