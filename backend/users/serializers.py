@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from .models import Profile
+from .models import UserRole, Profile
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -58,8 +58,16 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "profile",
+            "role",
         ]
         extra_kwargs = {
             "first_name": {"required": True},
             "last_name": {"required": True},
         }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        role_value = data["role"]
+        role_label = UserRole(role_value).label
+        data["role"] = role_label
+        return data

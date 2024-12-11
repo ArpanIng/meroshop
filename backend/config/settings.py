@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # local apps
     "users.apps.UsersConfig",
+    "products.apps.ProductsConfig",
+    "vendors.apps.VendorsConfig",
     # third-party packages
     "rest_framework",
     "rest_framework_simplejwt",
@@ -135,7 +137,7 @@ REST_FRAMEWORK = {
 
 # JWT configuration
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),
 }
 
 # cors-headers configuration
