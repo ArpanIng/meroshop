@@ -1,7 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Label, TextInput } from "flowbite-react";
-import { AuthContext } from "../../../contexts/AuthContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import AuthLayout from "../../../layouts/AuthLayout";
 
 function Register() {
@@ -12,7 +12,7 @@ function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { register } = useContext(AuthContext);
+  const { register } = useAuth();
 
   const handleRegister = async (e) => {
     setLoading(true);

@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button, Dropdown } from "flowbite-react";
 import {
   HiCog,
@@ -9,10 +9,11 @@ import {
   HiOutlineUserCircle,
   HiViewGrid,
 } from "react-icons/hi";
-import { AuthContext } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 function Navbar() {
-  const { isAuthenticated, handleLogout } = useContext(AuthContext);
+  const { isAuthenticated, handleLogout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <nav className="bg-white dark:bg-gray-800 antialiased">
