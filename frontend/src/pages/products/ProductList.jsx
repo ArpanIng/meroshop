@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "flowbite-react";
 import { HiPencil, HiPlus, HiSearch, HiTrash } from "react-icons/hi";
+import { Table } from "flowbite-react";
 import api from "../../api/endpoint";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
@@ -54,54 +55,45 @@ function ProductList() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                  <tr>
-                    <th scope="col" className="px-4 py-3">
-                      Product name
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      Category
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      Brand
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      Description
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      Price
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b dark:border-gray-700">
-                    <th
-                      scope="row"
-                      className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                    >
-                      Apple iMac 27&#34;
-                    </th>
-                    <td className="px-4 py-3">PC</td>
-                    <td className="px-4 py-3">Apple</td>
-                    <td className="px-4 py-3">300</td>
-                    <td className="px-4 py-3">$2999</td>
-                    <td className="px-4 py-3 flex gap-2 items-center justify-end">
-                      <Button type="button" color="blue">
-                        <HiPencil className="h-5 w-5 mr-2" />
+              <Table>
+                <Table.Head>
+                  <Table.HeadCell>Product name</Table.HeadCell>
+                  <Table.HeadCell>Description</Table.HeadCell>
+                  <Table.HeadCell>Category</Table.HeadCell>
+                  <Table.HeadCell>Price</Table.HeadCell>
+                  <Table.HeadCell>
+                    <span className="sr-only">Actions</span>
+                  </Table.HeadCell>
+                </Table.Head>
+                <Table.Body className="divide-y">
+                  <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                      Apple
+                    </Table.Cell>
+                    <Table.Cell>Apple</Table.Cell>
+                    <Table.Cell>Apple</Table.Cell>
+                    <Table.Cell>Apple</Table.Cell>
+                    <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
+                      <Link
+                        to={`/admin/products`}
+                        type="button"
+                        className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                      >
+                        <HiPencil className="h-4 w-4 mr-2" />
                         Edit
-                      </Button>
-                      <Button type="button" color="failure">
-                        <HiTrash className="h-5 w-5 mr-2" />
+                      </Link>
+                      <Link
+                        to={`/admin/products`}
+                        type="button"
+                        className="flex items-center justify-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                      >
+                        <HiTrash className="h-4 w-4 mr-2" />
                         Delete
-                      </Button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      </Link>
+                    </Table.Cell>
+                  </Table.Row>
+                </Table.Body>
+              </Table>
             </div>
           </div>
         </div>

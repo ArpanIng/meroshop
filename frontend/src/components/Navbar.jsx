@@ -58,15 +58,13 @@ function Navbar() {
           </div>
 
           <div className="flex items-center lg:space-x-2">
-            <Link to="/cart">
-              <button
-                type="button"
-                className="inline-flex items-center rounded-lg justify-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium leading-none text-gray-900 dark:text-white"
-              >
-                <span className="sr-only">Cart</span>
-
-                <HiOutlineShoppingCart className="w-5 h-5" />
-              </button>
+            <Link
+              to="/cart"
+              type="button"
+              className="inline-flex items-center rounded-lg justify-center p-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium leading-none text-gray-900 dark:text-white"
+            >
+              <span className="sr-only">Cart</span>
+              <HiOutlineShoppingCart className="w-5 h-5" />
             </Link>
 
             {isAuthenticated ? (
@@ -98,16 +96,20 @@ function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login">
-                  <Button color="blue" type="button">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button color="blue" type="button">
-                    Register
-                  </Button>
-                </Link>
+                <Button
+                  color="blue"
+                  type="button"
+                  onClick={() => navigate("/login")}
+                >
+                  Login
+                </Button>
+                <Button
+                  color="blue"
+                  type="button"
+                  onClick={() => navigate("/register")}
+                >
+                  Register
+                </Button>
               </>
             )}
           </div>

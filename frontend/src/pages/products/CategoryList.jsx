@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HiPencil, HiPlus, HiTrash } from "react-icons/hi";
+import { Table } from "flowbite-react";
 import api from "../../api/endpoint";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
@@ -54,7 +55,7 @@ function CategoryList() {
                 <Link
                   to="/admin/categories/add"
                   type="button"
-                  class="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                  className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                 >
                   <HiPlus className="h-4 w-4 mr-2" />
                   Add category
@@ -62,70 +63,57 @@ function CategoryList() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                  <tr>
-                    <th scope="col" className="px-4 py-3">
-                      Category name
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      Slug
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      Created at
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      Updated at
-                    </th>
-                    <th scope="col" className="px-4 py-3">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table>
+                <Table.Head>
+                  <Table.HeadCell>Category name</Table.HeadCell>
+                  <Table.HeadCell>Slug</Table.HeadCell>
+                  <Table.HeadCell>Created at</Table.HeadCell>
+                  <Table.HeadCell>Updated at</Table.HeadCell>
+                  <Table.HeadCell>
+                    <span className="sr-only">Actions</span>
+                  </Table.HeadCell>
+                </Table.Head>
+                <Table.Body className="divide-y">
                   {categories.length > 0 ? (
                     categories.map((category) => (
-                      <tr
+                      <Table.Row
                         key={category.id}
-                        className="border-b dark:border-gray-700"
+                        className="bg-white dark:border-gray-700 dark:bg-gray-800"
                       >
-                        <th
-                          scope="row"
-                          className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                        >
+                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
                           {category.name}
-                        </th>
-                        <td className="px-4 py-3">{category.slug}</td>
-                        <td className="px-4 py-3">
+                        </Table.Cell>
+                        <Table.Cell>{category.slug}</Table.Cell>
+                        <Table.Cell>
                           {formatDate(category.created_at)}
-                        </td>
-                        <td className="px-4 py-3">
+                        </Table.Cell>
+                        <Table.Cell>
                           {formatDate(category.updated_at)}
-                        </td>
-                        <td className="px-4 py-3 flex gap-2 items-center justify-end">
+                        </Table.Cell>
+                        <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
                           <Link
                             to={`/admin/categories/${category.slug}/edit`}
                             type="button"
-                            class="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                            className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
                           >
                             <HiPencil className="h-4 w-4 mr-2" />
                             Edit
                           </Link>
                           <button
                             type="button"
-                            class="flex items-center justify-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                            className="flex items-center justify-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
                           >
                             <HiTrash className="h-4 w-4 mr-2" />
                             Delete
                           </button>
-                        </td>
-                      </tr>
+                        </Table.Cell>
+                      </Table.Row>
                     ))
                   ) : (
                     <DashboardTableNoDataRow columns={5} />
                   )}
-                </tbody>
-              </table>
+                </Table.Body>
+              </Table>
             </div>
           </div>
         </div>
