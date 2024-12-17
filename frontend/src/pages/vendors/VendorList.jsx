@@ -3,14 +3,24 @@ import { Link } from "react-router-dom";
 import { HiPencil, HiPlus, HiSearch, HiTrash } from "react-icons/hi";
 import { Table } from "flowbite-react";
 import api from "../../api/endpoint";
+import Badge from "../../components/Badge";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
+import Loading from "../../components/Loading";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { formatDate } from "../../utils/formatting";
 
 function VendorList() {
   const [vendors, setVendors] = useState([]);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const openDeleteModal = (vendorId) => {
+    setSelectedVendor(vendorId);
+    setOpenModal(true);
+  };
 
   const fetchVendors = async () => {
     try {
@@ -21,6 +31,16 @@ function VendorList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (vendorId) => {
+    try {
+      await api.delete(`/api/vendors/${vendorId}/`);
+      setVendors((v) => v.filter((vendor) => vendor.id !== vendorId));
+    } catch (error) {
+      console.error("Error deleting vendor:", error);
+    }
+    setOpenModal(false);
   };
 
   useEffect(() => {
@@ -64,61 +84,83 @@ function VendorList() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <Table>
-                <Table.Head>
-                  <Table.HeadCell>Vendor name</Table.HeadCell>
-                  <Table.HeadCell>Description</Table.HeadCell>
-                  <Table.HeadCell>Email</Table.HeadCell>
-                  <Table.HeadCell>Address</Table.HeadCell>
-                  <Table.HeadCell>Phone number</Table.HeadCell>
-                  <Table.HeadCell>Status</Table.HeadCell>
-                  <Table.HeadCell>Created at</Table.HeadCell>
-                  <Table.HeadCell>Updated at</Table.HeadCell>
-                  <Table.HeadCell>
-                    <span className="sr-only">Actions</span>
-                  </Table.HeadCell>
-                </Table.Head>
-                <Table.Body className="divide-y">
-                  {vendors.length > 0 ? (
-                    vendors.map((vendor) => (
-                      <Table.Row
-                        key={vendor.id}
-                        className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                      >
-                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                          {vendor.name}
-                        </Table.Cell>
-                        <Table.Cell>{vendor.description}</Table.Cell>
-                        <Table.Cell>{vendor.email}</Table.Cell>
-                        <Table.Cell>{vendor.address}</Table.Cell>
-                        <Table.Cell>{vendor.phone_number}</Table.Cell>
-                        <Table.Cell>{vendor.status}</Table.Cell>
-                        <Table.Cell>{formatDate(vendor.created_at)}</Table.Cell>
-                        <Table.Cell>{formatDate(vendor.updated_at)}</Table.Cell>
-                        <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
-                          <Link
-                            to={`/admin/vendors/${vendor.id}/edit`}
-                            type="button"
-                            className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                          >
-                            <HiPencil className="h-4 w-4 mr-2" />
-                            Edit
-                          </Link>
-                          <button
-                            type="button"
-                            className="flex items-center justify-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                          >
-                            <HiTrash className="h-4 w-4 mr-2" />
-                            Delete
-                          </button>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))
-                  ) : (
-                    <DashboardTableNoDataRow columns={9} />
-                  )}
-                </Table.Body>
-              </Table>
+              {loading ? (
+                <Loading />
+              ) : (
+                <Table>
+                  <Table.Head>
+                    <Table.HeadCell>Vendor name</Table.HeadCell>
+                    <Table.HeadCell>Email</Table.HeadCell>
+                    <Table.HeadCell>Address</Table.HeadCell>
+                    <Table.HeadCell>Phone number</Table.HeadCell>
+                    <Table.HeadCell>Status</Table.HeadCell>
+                    <Table.HeadCell>Created at</Table.HeadCell>
+                    <Table.HeadCell>Updated at</Table.HeadCell>
+                    <Table.HeadCell>
+                      <span className="sr-only">Actions</span>
+                    </Table.HeadCell>
+                  </Table.Head>
+                  <Table.Body className="divide-y">
+                    {vendors.length > 0 ? (
+                      vendors.map((vendor) => (
+                        <Table.Row
+                          key={vendor.id}
+                          className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                        >
+                          <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                            {vendor.name}
+                          </Table.Cell>
+                          <Table.Cell>{vendor.email}</Table.Cell>
+                          <Table.Cell>{vendor.address}</Table.Cell>
+                          <Table.Cell>{vendor.phone_number}</Table.Cell>
+                          <Table.Cell>
+                            <Badge
+                              color={
+                                vendor.status === "Active" ? "green" : "red"
+                              }
+                            >
+                              {vendor.status}
+                            </Badge>
+                          </Table.Cell>
+                          <Table.Cell>
+                            {formatDate(vendor.created_at)}
+                          </Table.Cell>
+                          <Table.Cell>
+                            {formatDate(vendor.updated_at)}
+                          </Table.Cell>
+                          <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
+                            <Link
+                              to={`/admin/vendors/${vendor.id}/edit`}
+                              type="button"
+                              className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                            >
+                              <HiPencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </Link>
+                            <button
+                              type="button"
+                              className="flex items-center justify-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                              onClick={() => openDeleteModal(vendor.id)}
+                            >
+                              <HiTrash className="h-4 w-4 mr-2" />
+                              Delete
+                            </button>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))
+                    ) : (
+                      <DashboardTableNoDataRow columns={8} />
+                    )}
+                  </Table.Body>
+                </Table>
+              )}
+
+              <DeleteConfirmModal
+                isOpen={openModal}
+                onClose={() => setOpenModal(false)}
+                onConfirm={() => handleDelete(selectedVendor)}
+                modalHeader="Are you sure you want to delete this vendor?"
+              />
             </div>
           </div>
         </div>

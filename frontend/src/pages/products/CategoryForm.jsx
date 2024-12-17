@@ -10,7 +10,7 @@ import DashboardFormLayout from "../../layouts/DashboardFormLayout";
 
 function CategoryForm({ mode }) {
   const [errorMessage, setErrorMessage] = useState(""); // State for server error message
-  let { categorySlug } = useParams();
+  let { categoryId } = useParams();
   const navigate = useNavigate();
 
   const initialValues = {
@@ -33,7 +33,7 @@ function CategoryForm({ mode }) {
         setErrorMessage("");
         if (mode === "EDIT") {
           // update existing category
-          await api.put(`/api/categories/${categorySlug}/`, values);
+          await api.put(`/api/categories/${categoryId}/`, values);
         } else {
           // create new category
           await api.post("/api/categories/", values);
@@ -53,7 +53,7 @@ function CategoryForm({ mode }) {
 
   const fetchCategory = async () => {
     try {
-      const response = await api.get(`/api/categories/${categorySlug}`);
+      const response = await api.get(`/api/categories/${categoryId}`);
       formik.setValues({ name: response.data.name });
     } catch (error) {
       console.error("Error fetching category:", error);
@@ -61,7 +61,7 @@ function CategoryForm({ mode }) {
   };
 
   useEffect(() => {
-    if (mode === "EDIT" && categorySlug) {
+    if (mode === "EDIT" && categoryId) {
       fetchCategory();
     }
   }, []);

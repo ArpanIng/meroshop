@@ -5,13 +5,22 @@ import { Table } from "flowbite-react";
 import api from "../../api/endpoint";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
+import Loading from "../../components/Loading";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { formatDate } from "../../utils/formatting";
 
 function CategoryList() {
   const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const openDeleteModal = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setOpenModal(true);
+  };
 
   const fetchCategories = async (searchQuery) => {
     setLoading(true);
@@ -31,6 +40,16 @@ function CategoryList() {
     e.preventDefault();
     // fetch categories based on the current search
     fetchCategories(searchQuery);
+  };
+
+  const handleDelete = async (categoryId) => {
+    try {
+      await api.delete(`/api/categories/${categoryId}/`);
+      setCategories((c) => c.filter((category) => category.id !== categoryId));
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    }
+    setOpenModal(false);
   };
 
   useEffect(() => {
@@ -63,57 +82,70 @@ function CategoryList() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <Table>
-                <Table.Head>
-                  <Table.HeadCell>Category name</Table.HeadCell>
-                  <Table.HeadCell>Slug</Table.HeadCell>
-                  <Table.HeadCell>Created at</Table.HeadCell>
-                  <Table.HeadCell>Updated at</Table.HeadCell>
-                  <Table.HeadCell>
-                    <span className="sr-only">Actions</span>
-                  </Table.HeadCell>
-                </Table.Head>
-                <Table.Body className="divide-y">
-                  {categories.length > 0 ? (
-                    categories.map((category) => (
-                      <Table.Row
-                        key={category.id}
-                        className="bg-white dark:border-gray-700 dark:bg-gray-800"
-                      >
-                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                          {category.name}
-                        </Table.Cell>
-                        <Table.Cell>{category.slug}</Table.Cell>
-                        <Table.Cell>
-                          {formatDate(category.created_at)}
-                        </Table.Cell>
-                        <Table.Cell>
-                          {formatDate(category.updated_at)}
-                        </Table.Cell>
-                        <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
-                          <Link
-                            to={`/admin/categories/${category.slug}/edit`}
-                            type="button"
-                            className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                          >
-                            <HiPencil className="h-4 w-4 mr-2" />
-                            Edit
-                          </Link>
-                          <button
-                            type="button"
-                            className="flex items-center justify-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                          >
-                            <HiTrash className="h-4 w-4 mr-2" />
-                            Delete
-                          </button>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))
-                  ) : (
-                    <DashboardTableNoDataRow columns={5} />
-                  )}
-                </Table.Body>
-              </Table>
+              {loading ? (
+                <Loading />
+              ) : (
+                <Table>
+                  <Table.Head>
+                    <Table.HeadCell>Category name</Table.HeadCell>
+                    <Table.HeadCell>Slug</Table.HeadCell>
+                    <Table.HeadCell>Created at</Table.HeadCell>
+                    <Table.HeadCell>Updated at</Table.HeadCell>
+                    <Table.HeadCell>
+                      <span className="sr-only">Actions</span>
+                    </Table.HeadCell>
+                  </Table.Head>
+                  <Table.Body className="divide-y">
+                    {categories.length > 0 ? (
+                      categories.map((category) => (
+                        <Table.Row
+                          key={category.id}
+                          className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                        >
+                          <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                            {category.name}
+                          </Table.Cell>
+                          <Table.Cell>{category.slug}</Table.Cell>
+                          <Table.Cell>
+                            {formatDate(category.created_at)}
+                          </Table.Cell>
+                          <Table.Cell>
+                            {formatDate(category.updated_at)}
+                          </Table.Cell>
+                          <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
+                            <Link
+                              to={`/admin/categories/${category.id}/edit`}
+                              type="button"
+                              className="flex items-center justify-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                            >
+                              <HiPencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </Link>
+                            <button
+                              type="button"
+                              className="flex items-center justify-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+                              onClick={() => {
+                                openDeleteModal(category.id);
+                              }}
+                            >
+                              <HiTrash className="h-4 w-4 mr-2" />
+                              Delete
+                            </button>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))
+                    ) : (
+                      <DashboardTableNoDataRow columns={5} />
+                    )}
+                  </Table.Body>
+                </Table>
+              )}
+
+              <DeleteConfirmModal
+                isOpen={openModal}
+                onClose={() => setOpenModal(false)}
+                onConfirm={() => handleDelete(selectedCategory)}
+              />
             </div>
           </div>
         </div>

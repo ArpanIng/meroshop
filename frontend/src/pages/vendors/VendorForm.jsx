@@ -5,11 +5,14 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import PropTypes from "prop-types";
 import api from "../../api/endpoint";
+import Loading from "../../components/Loading";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import DashboardFormLayout from "../../layouts/DashboardFormLayout";
 
 function VendorForm({ mode }) {
+  const [statusChoices, setStatusChoices] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   let { vendorId } = useParams();
   const navigate = useNavigate();
 
@@ -38,24 +41,28 @@ function VendorForm({ mode }) {
     phoneNumber: Yup.string()
       .matches(/^[0-9]{10}$/, "Phone number must be exactly 10 digits")
       .required("Phone number is required"),
-    status: Yup.string()
-      .oneOf(
-        ["active", "inactive"],
-        "Status must be either 'active' or 'inactive'"
-      )
-      .required("Select status"),
+    status: Yup.string().required("Select status"),
   });
 
   const formik = useFormik({
     initialValues,
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
+      const submitFormData = {
+        name: values.name,
+        description: values.description,
+        email: values.email,
+        address: values.address,
+        phone_number: values.phoneNumber,
+        status: values.status,
+      };
+
       try {
         setErrorMessage("");
         if (mode === "EDIT") {
-          await api.put(`/api/vendors/${vendorId}/`, values);
+          await api.put(`/api/vendors/${vendorId}/`, submitFormData);
         } else {
-          await api.post("/api/vendors", values);
+          await api.post("/api/vendors/", submitFormData);
           resetForm();
         }
         navigate("/admin/vendors");
@@ -70,12 +77,41 @@ function VendorForm({ mode }) {
     },
   });
 
+  /*
+  fetches metadata for the status field choices with OPTIONS request
+  */
+  const fetchMetaData = async () => {
+    setLoading(true);
+    try {
+      const url = vendorId ? `/api/vendors/${vendorId}` : "/api/vendors/";
+      const response = await api.options(url);
+      const optionStatusData = vendorId
+        ? response.data.actions?.PUT?.status?.choices || []
+        : response.data.actions?.POST?.status?.choices || [];
+      setStatusChoices(optionStatusData);
+    } catch (error) {
+      console.error("Errof fetching metadata:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchVendor = async () => {
+    setLoading(true);
     try {
       const response = await api.get(`/api/vendors/${vendorId}`);
-      formik.setValues(response.data);
+      formik.setValues({
+        name: response.data.name || "",
+        description: response.data.description || "",
+        email: response.data.email || "",
+        address: response.data.address || "",
+        phoneNumber: response.data.phone_number || "",
+        status: response.data.status.toUpperCase() || "",
+      });
     } catch (error) {
       console.error("Error fetching vendor:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,6 +119,7 @@ function VendorForm({ mode }) {
     if (mode === "EDIT" && vendorId) {
       fetchVendor();
     }
+    fetchMetaData();
   }, []);
 
   return (
@@ -90,152 +127,169 @@ function VendorForm({ mode }) {
       <DashboardFormLayout
         formTitle={mode === "ADD" ? "Add a new vendor" : "Edit vendor"}
       >
-        <form onSubmit={formik.handleSubmit}>
-          <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
-            <div className="sm:col-span-2">
-              <Label
-                htmlFor="name"
-                value="Vendor name"
-                className="block mb-2"
-              />
-              <TextInput
-                type="text"
-                id="name"
-                name="name"
-                value={formik.values.name}
-                onChange={formik.handleChange}
-                color={formik.errors.name ? "failure" : "gray"}
-                helperText={
-                  <>
-                    {formik.errors.name ? (
-                      <span>{formik.errors.name}</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                }
-              />
+        {loading ? (
+          <Loading />
+        ) : (
+          <form onSubmit={formik.handleSubmit}>
+            <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+              {errorMessage && (
+                <div className="text-red-600">{errorMessage}</div>
+              )}
+              <div className="sm:col-span-2">
+                <Label
+                  htmlFor="name"
+                  value="Vendor name"
+                  className="block mb-2"
+                />
+                <TextInput
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formik.values.name}
+                  onChange={formik.handleChange}
+                  color={formik.errors.name ? "failure" : "gray"}
+                  onBlur={formik.handleBlur}
+                  helperText={
+                    <>
+                      {formik.touched.name && formik.errors.name ? (
+                        <span>{formik.errors.name}</span>
+                      ) : null}
+                    </>
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="email" value="Email" className="block mb-2" />
+                <TextInput
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  color={formik.errors.email ? "failure" : "gray"}
+                  onBlur={formik.handleBlur}
+                  helperText={
+                    <>
+                      {formik.touched.email && formik.errors.email ? (
+                        <span>{formik.errors.email}</span>
+                      ) : null}
+                    </>
+                  }
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor="address"
+                  value="Address"
+                  className="block mb-2"
+                />
+                <TextInput
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={formik.values.address}
+                  onChange={formik.handleChange}
+                  color={formik.errors.address ? "failure" : "gray"}
+                  onBlur={formik.handleBlur}
+                  helperText={
+                    <>
+                      {formik.touched.address && formik.errors.address ? (
+                        <span>{formik.errors.address}</span>
+                      ) : null}
+                    </>
+                  }
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor="phone-number"
+                  value="Phone number"
+                  className="block mb-2"
+                />
+                <TextInput
+                  type="text"
+                  id="phone-number"
+                  name="phoneNumber"
+                  value={formik.values.phoneNumber}
+                  onChange={formik.handleChange}
+                  color={formik.errors.phoneNumber ? "failure" : "gray"}
+                  onBlur={formik.handleBlur}
+                  helperText={
+                    <>
+                      {formik.touched.phoneNumber &&
+                      formik.errors.phoneNumber ? (
+                        <span>{formik.errors.phoneNumber}</span>
+                      ) : null}
+                    </>
+                  }
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor="status"
+                  value="Select status"
+                  className="block mb-2"
+                />
+                <Select
+                  id="status"
+                  name="status"
+                  value={formik.values.status}
+                  onChange={formik.handleChange}
+                  color={formik.errors.status ? "failure" : "gray"}
+                  onBlur={formik.handleBlur}
+                  helperText={
+                    <>
+                      {formik.touched.status && formik.errors.status ? (
+                        <span>{formik.errors.status}</span>
+                      ) : null}
+                    </>
+                  }
+                >
+                  <option value="" disabled>
+                    Select status
+                  </option>
+                  {statusChoices.map((choice) => (
+                    <option key={choice.value} value={choice.value}>
+                      {choice.display_name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="sm:col-span-2">
+                <Label
+                  htmlFor="description"
+                  value="Description"
+                  className="block mb-2"
+                />
+                <Textarea
+                  id="description"
+                  name="description"
+                  rows={8}
+                  value={formik.values.description}
+                  onChange={formik.handleChange}
+                  color={formik.errors.description ? "failure" : "gray"}
+                  onBlur={formik.handleBlur}
+                  helperText={
+                    <>
+                      {formik.touched.description &&
+                      formik.errors.description ? (
+                        <span>{formik.errors.description}</span>
+                      ) : null}
+                    </>
+                  }
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="email" value="Email" className="block mb-2" />
-              <TextInput
-                type="email"
-                id="email"
-                name="email"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                color={formik.errors.name ? "failure" : "gray"}
-                helperText={
-                  <>
-                    {formik.errors.email ? (
-                      <span>{formik.errors.email}</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="address" value="Address" className="block mb-2" />
-              <TextInput
-                type="text"
-                id="address"
-                name="address"
-                value={formik.values.address}
-                onChange={formik.handleChange}
-                color={formik.errors.name ? "failure" : "gray"}
-                helperText={
-                  <>
-                    {formik.errors.address ? (
-                      <span>{formik.errors.address}</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                }
-              />
-            </div>
-            <div>
-              <Label
-                htmlFor="phone-number"
-                value="Phone number"
-                className="block mb-2"
-              />
-              <TextInput
-                type="number"
-                id="phone-number"
-                name="phoneNumber"
-                value={formik.validateField.phoneNumber}
-                onChange={formik.handleChange}
-                color={formik.errors.name ? "failure" : "gray"}
-                helperText={
-                  <>
-                    {formik.errors.phoneNumber ? (
-                      <span>{formik.errors.phoneNumber}</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="status" value="Status" className="block mb-2" />
-              <Select
-                id="status"
-                name="status"
-                value={formik.validateField.status}
-                onChange={formik.handleChange}
-                color={formik.errors.status ? "failure" : "gray"}
-                helperText={
-                  <>
-                    {formik.errors.status ? (
-                      <span>{formik.errors.status}</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                }
-              >
-                <option>Active</option>
-                <option>Inactive</option>
-              </Select>
-            </div>
-            <div className="sm:col-span-2">
-              <Label
-                htmlFor="description"
-                value="Description"
-                className="block mb-2"
-              />
-              <Textarea
-                id="description"
-                name="description"
-                rows={8}
-                value={formik.validateField.description}
-                onChange={formik.handleChange}
-                color={formik.errors.description ? "failure" : "gray"}
-                helperText={
-                  <>
-                    {formik.errors.description ? (
-                      <span>{formik.errors.description}</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                }
-              />
-            </div>
-          </div>
-          <Button
-            type="submit"
-            color="blue"
-            className="mt-4"
-            disabled={formik.isSubmitting}
-          >
-            {mode === "ADD" ? "Add vendor" : "Edit vendor"}
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              color="blue"
+              className="mt-4"
+              disabled={formik.isSubmitting}
+            >
+              {mode === "ADD" ? "Add vendor" : "Edit vendor"}
+            </Button>
+          </form>
+        )}
       </DashboardFormLayout>
     </DashboardMainLayout>
   );
