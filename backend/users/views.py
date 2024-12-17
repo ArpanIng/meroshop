@@ -2,16 +2,22 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
-from .serializers import UserRegistrationSerializer, UserSerializer
 from .permissions import IsAdmin
+from .serializers import UserRegistrationSerializer, UserSerializer
 
 
 class UserListView(generics.ListAPIView):
     """View to list all users in the system."""
 
-    queryset = get_user_model().objects.all()
     permission_classes = [IsAdmin]
     serializer_class = UserSerializer
+
+    def get_queryset(self):
+        queryset = get_user_model().objects.all()
+        role = self.request.query_params.get("role")
+        if role is not None:
+            queryset = queryset.filter(roll__exact=role)
+        return queryset
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):

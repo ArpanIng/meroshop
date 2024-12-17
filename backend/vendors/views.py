@@ -1,8 +1,9 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
+from users.permissions import IsAdminOrReadOnly
+
 from .models import Vendor
 from .serializers import VendorSerializer
-from users.permissions import IsAdminOrReadOnly
 
 
 class VendorListView(ListCreateAPIView):

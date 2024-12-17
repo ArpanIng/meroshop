@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('vendors', '0001_initial'),
+        ("vendors", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='vendor',
-            name='status',
-            field=models.CharField(choices=[('ACTIVE', 'Active'), ('INACTIVE', 'Inactive')], default='ACTIVE', help_text='Select the status of the vendor.', max_length=10),
+            model_name="vendor",
+            name="status",
+            field=models.CharField(
+                choices=[("ACTIVE", "Active"), ("INACTIVE", "Inactive")],
+                default="ACTIVE",
+                help_text="Select the status of the vendor.",
+                max_length=10,
+            ),
         ),
     ]
