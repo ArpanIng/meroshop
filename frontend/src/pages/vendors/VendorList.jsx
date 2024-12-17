@@ -6,7 +6,7 @@ import api from "../../api/endpoint";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
-import { formatDate } from "../../utils";
+import { formatDate } from "../../utils/formatting";
 
 function VendorList() {
   const [vendors, setVendors] = useState([]);

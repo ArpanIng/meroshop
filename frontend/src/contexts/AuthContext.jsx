@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../api/constants";
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "../utils/constants";
 import api from "../api/endpoint";
 
 const AuthContext = createContext();
