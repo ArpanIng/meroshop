@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ACCESS_TOKEN } from "../utils/constants";
+import { ACCESS_TOKEN } from "../../utils/constants";
 
 const BASE_URL = "http://localhost:8000";
 
