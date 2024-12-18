@@ -4,9 +4,13 @@ import { Button, Label, TextInput } from "flowbite-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import PropTypes from "prop-types";
-import api from "../../api/endpoint";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import DashboardFormLayout from "../../layouts/DashboardFormLayout";
+import {
+  createCategory,
+  fetchCategory,
+  updateCategory,
+} from "../../services/api/categoryApi";
 
 function CategoryForm({ mode }) {
   const [errorMessage, setErrorMessage] = useState(""); // State for server error message
@@ -27,16 +31,15 @@ function CategoryForm({ mode }) {
   const formik = useFormik({
     initialValues,
     validationSchema,
-    // enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
       try {
         setErrorMessage("");
         if (mode === "EDIT") {
           // update existing category
-          await api.put(`/api/categories/${categoryId}/`, values);
+          await updateCategory(categoryId, values);
         } else {
           // create new category
-          await api.post("/api/categories/", values);
+          await createCategory(values);
           resetForm();
         }
         navigate("/admin/categories");
@@ -51,18 +54,18 @@ function CategoryForm({ mode }) {
     },
   });
 
-  const fetchCategory = async () => {
+  const getCategory = async () => {
     try {
-      const response = await api.get(`/api/categories/${categoryId}`);
-      formik.setValues({ name: response.data.name });
+      const data = await fetchCategory(categoryId);
+      formik.setValues({ name: data.name });
     } catch (error) {
-      console.error("Error fetching category:", error);
+      console.error("Error loading category data:", error);
     }
   };
 
   useEffect(() => {
     if (mode === "EDIT" && categoryId) {
-      fetchCategory();
+      getCategory();
     }
   }, []);
 

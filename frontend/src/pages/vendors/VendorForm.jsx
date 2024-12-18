@@ -4,10 +4,15 @@ import { Button, Label, Select, TextInput, Textarea } from "flowbite-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import PropTypes from "prop-types";
-import api from "../../api/endpoint";
 import Loading from "../../components/Loading";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import DashboardFormLayout from "../../layouts/DashboardFormLayout";
+import {
+  createVendor,
+  fetchVendor,
+  fetchVendorStatusChoices,
+  updateVendor,
+} from "../../services/api/vendorApi";
 
 function VendorForm({ mode }) {
   const [statusChoices, setStatusChoices] = useState([]);
@@ -60,9 +65,9 @@ function VendorForm({ mode }) {
       try {
         setErrorMessage("");
         if (mode === "EDIT") {
-          await api.put(`/api/vendors/${vendorId}/`, submitFormData);
+          await updateVendor(vendorId, submitFormData);
         } else {
-          await api.post("/api/vendors/", submitFormData);
+          await createVendor(submitFormData);
           resetForm();
         }
         navigate("/admin/vendors");
@@ -78,38 +83,27 @@ function VendorForm({ mode }) {
   });
 
   /*
-  fetches metadata for the status field choices with OPTIONS request
+  fetches vendor status field choices with OPTIONS request
   */
-  const fetchMetaData = async () => {
+  const getVendorStatusChoices = async () => {
     setLoading(true);
     try {
-      const url = vendorId ? `/api/vendors/${vendorId}` : "/api/vendors/";
-      const response = await api.options(url);
-      const optionStatusData = vendorId
-        ? response.data.actions?.PUT?.status?.choices || []
-        : response.data.actions?.POST?.status?.choices || [];
-      setStatusChoices(optionStatusData);
+      const options = await fetchVendorStatusChoices(vendorId);
+      setStatusChoices(options);
     } catch (error) {
-      console.error("Errof fetching metadata:", error);
+      console.error("Error loading vendor status choices:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchVendor = async () => {
+  const getVendor = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/api/vendors/${vendorId}`);
-      formik.setValues({
-        name: response.data.name || "",
-        description: response.data.description || "",
-        email: response.data.email || "",
-        address: response.data.address || "",
-        phoneNumber: response.data.phone_number || "",
-        status: response.data.status.toUpperCase() || "",
-      });
+      const data = await fetchVendor(vendorId);
+      formik.setValues(data);
     } catch (error) {
-      console.error("Error fetching vendor:", error);
+      console.error("Error loading vendor data:", error);
     } finally {
       setLoading(false);
     }
@@ -117,9 +111,9 @@ function VendorForm({ mode }) {
 
   useEffect(() => {
     if (mode === "EDIT" && vendorId) {
-      fetchVendor();
+      getVendor();
     }
-    fetchMetaData();
+    getVendorStatusChoices();
   }, []);
 
   return (

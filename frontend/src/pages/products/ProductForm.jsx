@@ -4,9 +4,9 @@ import { Button, Label, Select, Textarea, TextInput } from "flowbite-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import PropTypes from "prop-types";
-import api from "../../api/endpoint";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import DashboardFormLayout from "../../layouts/DashboardFormLayout";
+import api from "../../services/api/endpoint";
 
 function ProductForm({ mode }) {
   const [statusChoices, setStatusChoices] = useState([]);

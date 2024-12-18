@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HiPencil, HiPlus, HiSearch, HiTrash } from "react-icons/hi";
 import { Table } from "flowbite-react";
-import api from "../../api/endpoint";
 import Badge from "../../components/Badge";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import Loading from "../../components/Loading";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
+import { deleteVendor, fetchVendors } from "../../services/api/vendorApi";
 import { formatDate } from "../../utils/formatting";
 
 function VendorList() {
@@ -22,12 +22,12 @@ function VendorList() {
     setOpenModal(true);
   };
 
-  const fetchVendors = async () => {
+  const getVendors = async () => {
     try {
-      const response = await api.get("/api/vendors/");
-      setVendors(response.data);
+      const data = await fetchVendors();
+      setVendors(data);
     } catch (error) {
-      console.error("Error fetching vendors:", error);
+      console.error("Error loading vendor data:", error);
     } finally {
       setLoading(false);
     }
@@ -35,7 +35,7 @@ function VendorList() {
 
   const handleDelete = async (vendorId) => {
     try {
-      await api.delete(`/api/vendors/${vendorId}/`);
+      await deleteVendor(vendorId);
       setVendors((v) => v.filter((vendor) => vendor.id !== vendorId));
     } catch (error) {
       console.error("Error deleting vendor:", error);
@@ -44,7 +44,7 @@ function VendorList() {
   };
 
   useEffect(() => {
-    fetchVendors();
+    getVendors();
   }, []);
 
   return (

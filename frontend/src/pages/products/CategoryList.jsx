@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HiPencil, HiPlus, HiTrash } from "react-icons/hi";
 import { Table } from "flowbite-react";
-import api from "../../api/endpoint";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import Loading from "../../components/Loading";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
+import {
+  deleteCategory,
+  fetchCategories,
+} from "../../services/api/categoryApi";
 import { formatDate } from "../../utils/formatting";
 
 function CategoryList() {
@@ -22,15 +25,13 @@ function CategoryList() {
     setOpenModal(true);
   };
 
-  const fetchCategories = async (searchQuery) => {
+  const getCategories = async (searchQuery) => {
     setLoading(true);
     try {
-      const response = await api.get("/api/categories/", {
-        params: { q: searchQuery },
-      });
-      setCategories(response.data);
+      const data = await fetchCategories(searchQuery);
+      setCategories(data);
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error loading categories data:", error);
     } finally {
       setLoading(false);
     }
@@ -39,12 +40,12 @@ function CategoryList() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     // fetch categories based on the current search
-    fetchCategories(searchQuery);
+    getCategories(searchQuery);
   };
 
   const handleDelete = async (categoryId) => {
     try {
-      await api.delete(`/api/categories/${categoryId}/`);
+      await deleteCategory(categoryId);
       setCategories((c) => c.filter((category) => category.id !== categoryId));
     } catch (error) {
       console.error("Error deleting category:", error);
@@ -54,7 +55,7 @@ function CategoryList() {
 
   useEffect(() => {
     // fetch initial category with an empty query
-    fetchCategories(searchQuery);
+    getCategories(searchQuery);
   }, []);
 
   return (

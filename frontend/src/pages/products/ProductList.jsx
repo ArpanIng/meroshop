@@ -1,34 +1,33 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Spinner } from "flowbite-react";
 import { HiPencil, HiPlus, HiSearch, HiTrash } from "react-icons/hi";
 import { Table } from "flowbite-react";
-import api from "../../api/endpoint";
 import Badge from "../../components/Badge";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import Loading from "../../components/Loading";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
+import { fetchProducts } from "../../services/api/productApi";
 import { formatDate } from "../../utils/formatting";
 
 function ProductList() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchProducts = async () => {
+  const getProducts = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/api/products/");
-      setProducts(response.data);
+      const data = await fetchProducts();
+      setProducts(data);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("Error loading products data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    getProducts();
   }, []);
 
   return (
