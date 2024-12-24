@@ -17,8 +17,9 @@ import Register from "./pages/accounts/auth/Register";
 import Cart from "./pages/carts/Cart";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import VendorDashboard from "./pages/dashboard/VendorDashboard";
-import CategoryForm from "./pages/products/CategoryForm";
+import CategoryCreate from "./pages/products/CategoryCreate";
 import CategoryList from "./pages/products/CategoryList";
+import CategoryUpdate from "./pages/products/CategoryUpdate";
 import ProductDetail from "./pages/products/ProductDetail";
 import ProductForm from "./pages/products/ProductForm";
 import ProductList from "./pages/products/ProductList";
@@ -94,11 +95,8 @@ function App() {
             {/* category routes */}
             <Route path="categories">
               <Route index element={<CategoryList />} />
-              <Route path="add" element={<CategoryForm mode="ADD" />} />
-              <Route
-                path=":categoryId/edit"
-                element={<CategoryForm mode="EDIT" />}
-              />
+              <Route path="add" element={<CategoryCreate />} />
+              <Route path=":categorySlug/edit" element={<CategoryUpdate />} />
             </Route>
             {/* product routes */}
             <Route path="products">

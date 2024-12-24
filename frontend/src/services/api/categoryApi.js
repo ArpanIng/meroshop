@@ -8,41 +8,46 @@ export const fetchCategories = async (searchQuery) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching categories:", error);
+    throw error;
   }
 };
 
-export const fetchCategory = async (categoryId) => {
+export const fetchCategory = async (categorySlug) => {
   try {
-    const response = await api.get(`/api/categories/${categoryId}`);
+    const response = await api.get(`/api/categories/${categorySlug}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching category:", error);
+    throw error;
   }
 };
 
 export const createCategory = async (data) => {
   try {
     const response = await api.post("/api/categories/", data);
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Error creating category:", error);
+    throw error;
   }
 };
 
-export const updateCategory = async (categoryId, data) => {
+export const updateCategory = async (categorySlug, data) => {
   try {
-    const response = await api.put(`/api/categories/${categoryId}/`, data);
-    return response.data;
+    const response = await api.put(`/api/categories/${categorySlug}/`, data);
+    return response;
   } catch (error) {
     console.error("Error updating category:", error);
+    throw error;
   }
 };
 
-export const deleteCategory = async (categoryId) => {
+export const deleteCategory = async (categorySlug) => {
   try {
-    const response = await api.delete(`/api/categories/${categoryId}/`);
-    return response.data;
+    const response = await api.delete(`/api/categories/${categorySlug}/`);
+    return response;
   } catch (error) {
     console.error("Error deleting category:", error);
+    throw error;
   }
 };

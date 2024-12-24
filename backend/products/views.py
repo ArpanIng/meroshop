@@ -24,6 +24,8 @@ class CategoryDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = CategorySerializer
+    lookup_field = "slug"
+    lookup_url_kwarg = "category_slug"
 
 
 class ProductListView(ListCreateAPIView):

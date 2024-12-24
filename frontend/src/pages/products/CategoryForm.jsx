@@ -1,25 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState } from "react";
 import { Button, Label, TextInput } from "flowbite-react";
 import { useFormik } from "formik";
-import * as Yup from "yup";
 import PropTypes from "prop-types";
-import DashboardMainLayout from "../../layouts/DashboardMainLayout";
-import DashboardFormLayout from "../../layouts/DashboardFormLayout";
-import {
-  createCategory,
-  fetchCategory,
-  updateCategory,
-} from "../../services/api/categoryApi";
+import * as Yup from "yup";
 
-function CategoryForm({ mode }) {
-  const [errorMessage, setErrorMessage] = useState(""); // State for server error message
-  let { categoryId } = useParams();
-  const navigate = useNavigate();
-
-  const initialValues = {
-    name: "",
-  };
+function CategoryForm({ initialValues, onSubmit, isEditMode = false }) {
+  const [errorMessage, setErrorMessage] = useState("");
 
   const validationSchema = Yup.object({
     name: Yup.string()
@@ -31,18 +17,11 @@ function CategoryForm({ mode }) {
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit: async (values, { resetForm }) => {
+    enableReinitialize: true, // Reinitializes form values when initialValues change
+    onSubmit: async (values, actions) => {
       try {
         setErrorMessage("");
-        if (mode === "EDIT") {
-          // update existing category
-          await updateCategory(categoryId, values);
-        } else {
-          // create new category
-          await createCategory(values);
-          resetForm();
-        }
-        navigate("/admin/categories");
+        await onSubmit(values, actions);
       } catch (error) {
         if (error.response && error.response.data && error.response.data.name) {
           setErrorMessage(error.response.data.name[0]);
@@ -54,70 +33,41 @@ function CategoryForm({ mode }) {
     },
   });
 
-  const getCategory = async () => {
-    try {
-      const data = await fetchCategory(categoryId);
-      formik.setValues({ name: data.name });
-    } catch (error) {
-      console.error("Error loading category data:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (mode === "EDIT" && categoryId) {
-      getCategory();
-    }
-  }, []);
-
   return (
-    <DashboardMainLayout>
-      <DashboardFormLayout
-        formTitle={mode === "ADD" ? "Add a new category" : "Edit category"}
+    <form onSubmit={formik.handleSubmit}>
+      <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+        {errorMessage && <div className="text-red-600">{errorMessage}</div>}
+        <div className="sm:col-span-2">
+          <Label htmlFor="name" value="Category name" className="block mb-2" />
+          <TextInput
+            type="text"
+            id="name"
+            name="name"
+            value={formik.values.name}
+            onChange={formik.handleChange}
+            color={formik.errors.name ? "failure" : "gray"}
+            helperText={
+              <>{formik.errors.name ? <span>{formik.errors.name}</span> : ""}</>
+            }
+          />
+        </div>
+      </div>
+      <Button
+        type="submit"
+        color="blue"
+        className="mt-4"
+        disabled={formik.isSubmitting}
       >
-        <form onSubmit={formik.handleSubmit}>
-          <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
-            {errorMessage && <div className="text-red-600">{errorMessage}</div>}
-            <div className="sm:col-span-2">
-              <Label
-                htmlFor="name"
-                value="Category Name"
-                className="block mb-2"
-              />
-              <TextInput
-                type="text"
-                id="name"
-                name="name"
-                value={formik.values.name}
-                onChange={formik.handleChange}
-                color={formik.errors.name ? "failure" : "gray"}
-                helperText={
-                  <>
-                    {formik.errors.name ? (
-                      <span>{formik.errors.name}</span>
-                    ) : (
-                      ""
-                    )}
-                  </>
-                }
-              />
-            </div>
-          </div>
-          <Button
-            type="submit"
-            color="blue"
-            className="mt-4"
-            disabled={formik.isSubmitting}
-          >
-            {mode === "ADD" ? "Add category" : "Edit category"}
-          </Button>
-        </form>
-      </DashboardFormLayout>
-    </DashboardMainLayout>
+        {isEditMode ? "Edit category" : "Add category"}
+      </Button>
+    </form>
   );
 }
 
-CategoryForm.propTypes = {
-  mode: PropTypes.oneOf(["ADD", "EDIT"]).isRequired,
+CategoryForm.proTypes = {
+  initialValues: PropTypes.object.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  isEditMode: PropTypes.bool,
 };
 
 export default CategoryForm;
