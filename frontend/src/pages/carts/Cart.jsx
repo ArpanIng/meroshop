@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   HiOutlineArrowNarrowRight,
   HiOutlineHeart,
@@ -8,8 +8,71 @@ import {
   HiOutlineX,
 } from "react-icons/hi";
 import { Link } from "react-router-dom";
+import Loading from "../../components/Loading";
+import {
+  cartItemIncrementQuantity,
+  fetchUserCart,
+  removeFromCart,
+} from "../../services/api/cartApi";
 
 function Cart() {
+  const [cartItems, setCartItems] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const getUserCart = async () => {
+    try {
+      const data = await fetchUserCart();
+      setCartItems(data);
+    } catch (error) {
+      console.error("Error loading user cart:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCartItemIncrementQuantity = async (itemId) => {
+    try {
+      const response = await cartItemIncrementQuantity(itemId);
+      console.log(response.message);
+    } catch {
+      error;
+    }
+    {
+      console.error(error.message);
+    }
+  };
+  const handleCartItemDecrementQuantity = () => {};
+
+  const handleRemoveFromCart = async (itemId) => {
+    try {
+      setLoading(true);
+      await removeFromCart(itemId);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getUserCart();
+  }, []);
+
+  // Destructure the cart data
+  const {
+    items = [],
+    original_price,
+    discounted_price,
+    discount_percentage,
+    delivery_charge,
+    subtotal,
+    total,
+  } = cartItems;
+
+  if (loading) {
+    <Loading />;
+  }
+
   return (
     <section className="bg-white py-8 antialiased dark:bg-gray-900 md:py-16">
       <div className="mx-auto max-w-screen-xl px-4 2xl:px-0">
@@ -20,89 +83,113 @@ function Cart() {
         <div className="mt-6 sm:mt-8 md:gap-6 lg:flex lg:items-start xl:gap-8">
           <div className="mx-auto w-full flex-none lg:max-w-2xl xl:max-w-4xl">
             <div className="space-y-6">
-              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 md:p-6">
-                <div className="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
-                  <a href="#" className="shrink-0 md:order-1">
-                    <img
-                      className="h-20 w-20 dark:hidden"
-                      src="https://flowbite.s3.amazonaws.com/blocks/e-commerce/imac-front.svg"
-                      alt="imac image"
-                    />
-                    <img
-                      className="hidden h-20 w-20 dark:block"
-                      src="https://flowbite.s3.amazonaws.com/blocks/e-commerce/imac-front-dark.svg"
-                      alt="imac image"
-                    />
-                  </a>
+              {items.length > 0 ? (
+                items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 md:p-6"
+                  >
+                    <div className="space-y-4 md:flex md:items-center md:justify-between md:gap-6 md:space-y-0">
+                      <a href="#" className="shrink-0 md:order-1">
+                        <img
+                          className="h-20 w-20 dark:hidden"
+                          src={`${item.product.image}`}
+                          alt={`${item.product.name} Image`}
+                        />
+                      </a>
 
-                  <label for="counter-input" className="sr-only">
-                    Choose quantity:
-                  </label>
-                  <div className="flex items-center justify-between md:order-3 md:justify-end">
-                    <div className="flex items-center">
-                      <button
-                        type="button"
-                        id="decrement-button"
-                        data-input-counter-decrement="counter-input"
-                        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
-                      >
-                        <HiOutlineMinus className="h-2.5 w-2.5 text-gray-900 dark:text-white" />
-                      </button>
-                      <input
-                        type="text"
-                        id="counter-input"
-                        data-input-counter
-                        className="w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900 focus:outline-none focus:ring-0 dark:text-white"
-                        placeholder=""
-                        value="2"
-                        required
-                      />
-                      <button
-                        type="button"
-                        id="increment-button"
-                        data-input-counter-increment="counter-input"
-                        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
-                      >
-                        <HiOutlinePlus className="h-2.5 w-2.5 text-gray-900 dark:text-white" />
-                      </button>
-                    </div>
-                    <div className="text-end md:order-4 md:w-32">
-                      <p className="text-base font-bold text-gray-900 dark:text-white">
-                        $1,499
-                      </p>
+                      <label htmlFor="counter-input" className="sr-only">
+                        Choose quantity:
+                      </label>
+                      <div className="flex items-center justify-between md:order-3 md:justify-end">
+                        <div className="flex items-center">
+                          <button
+                            type="button"
+                            id="decrement-button"
+                            data-input-counter-decrement="counter-input"
+                            className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
+                            disabled={item.quantity <= 1}
+                          >
+                            <HiOutlineMinus className="h-2.5 w-2.5 text-gray-900 dark:text-white" />
+                          </button>
+                          <input
+                            type="text"
+                            id="counter-input"
+                            data-input-counter
+                            className="w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900 focus:outline-none focus:ring-0 dark:text-white"
+                            placeholder=""
+                            value={`${item.quantity}`}
+                            required
+                          />
+                          <button
+                            type="button"
+                            id="increment-button"
+                            data-input-counter-increment="counter-input"
+                            className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
+                            onClick={() =>
+                              handleCartItemIncrementQuantity(item.id)
+                            }
+                          >
+                            <HiOutlinePlus className="h-2.5 w-2.5 text-gray-900 dark:text-white" />
+                          </button>
+                        </div>
+                        <div className="text-end md:order-4 md:w-32">
+                          <p className="text-base font-bold text-gray-900 dark:text-white">
+                            Rs. {item.total}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="w-full min-w-0 flex-1 space-y-4 md:order-2 md:max-w-md">
+                        <Link
+                          to={`/products/${item.product.slug}`}
+                          className="text-base font-medium text-gray-900 hover:underline dark:text-white"
+                        >
+                          {item.product.name}
+                        </Link>
+
+                        <div className="flex gap-2">
+                          {item.product.has_discount ? (
+                            <>
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                Rs. {item.product.discount_price}
+                              </span>
+                              <span className="text-sm font-semibold text-gray-600 line-through dark:text-white">
+                                Rs. {item.product.price}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              Rs. {item.product.price}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline dark:text-gray-400 dark:hover:text-white"
+                          >
+                            <HiOutlineHeart className="me-1.5 h-5 w-5" />
+                            Add to Favorites
+                          </button>
+
+                          <button
+                            type="button"
+                            className="inline-flex items-center text-sm font-medium text-red-600 hover:underline dark:text-red-500"
+                            onClick={() => handleRemoveFromCart(item.id)}
+                          >
+                            <HiOutlineX className="me-1.5 h-5 w-5" />
+                            Remove
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="w-full min-w-0 flex-1 space-y-4 md:order-2 md:max-w-md">
-                    <a
-                      href="#"
-                      className="text-base font-medium text-gray-900 hover:underline dark:text-white"
-                    >
-                      PC system All in One APPLE iMac (2023) mqrq3ro/a, Apple
-                      M3, 24" Retina 4.5K, 8GB, SSD 256GB, 10-core GPU, Keyboard
-                      layout INT
-                    </a>
-
-                    <div className="flex items-center gap-4">
-                      <button
-                        type="button"
-                        className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline dark:text-gray-400 dark:hover:text-white"
-                      >
-                        <HiOutlineHeart className="me-1.5 h-5 w-5" />
-                        Add to Favorites
-                      </button>
-
-                      <button
-                        type="button"
-                        className="inline-flex items-center text-sm font-medium text-red-600 hover:underline dark:text-red-500"
-                      >
-                        <HiOutlineX className="me-1.5 h-5 w-5" />
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                ))
+              ) : (
+                <p>Your cart is empty.</p>
+              )}
             </div>
             <div className="hidden xl:mt-8 xl:block">
               <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -184,7 +271,7 @@ function Cart() {
                       Original price
                     </dt>
                     <dd className="text-base font-medium text-gray-900 dark:text-white">
-                      $7,592.00
+                      Rs. {original_price}
                     </dd>
                   </dl>
 
@@ -193,25 +280,34 @@ function Cart() {
                       Savings
                     </dt>
                     <dd className="text-base font-medium text-green-600">
-                      -$299.00
+                      -Rs. {discounted_price}
                     </dd>
                   </dl>
 
                   <dl className="flex items-center justify-between gap-4">
                     <dt className="text-base font-normal text-gray-500 dark:text-gray-400">
-                      Store Pickup
+                      Discount percentage
                     </dt>
                     <dd className="text-base font-medium text-gray-900 dark:text-white">
-                      $99
+                      {discount_percentage}%
                     </dd>
                   </dl>
 
                   <dl className="flex items-center justify-between gap-4">
                     <dt className="text-base font-normal text-gray-500 dark:text-gray-400">
-                      Tax
+                      Delivery charge
                     </dt>
                     <dd className="text-base font-medium text-gray-900 dark:text-white">
-                      $799
+                      Rs. {delivery_charge}
+                    </dd>
+                  </dl>
+
+                  <dl className="flex items-center justify-between gap-4">
+                    <dt className="text-base font-normal text-gray-500 dark:text-gray-400">
+                      Subtotal
+                    </dt>
+                    <dd className="text-base font-medium text-gray-900 dark:text-white">
+                      Rs. {subtotal}
                     </dd>
                   </dl>
                 </div>
@@ -221,7 +317,7 @@ function Cart() {
                     Total
                   </dt>
                   <dd className="text-base font-bold text-gray-900 dark:text-white">
-                    $8,191.00
+                    Rs. {total}
                   </dd>
                 </dl>
               </div>
@@ -252,7 +348,7 @@ function Cart() {
               <form className="space-y-4">
                 <div>
                   <label
-                    for="voucher"
+                    htmlFor="voucher"
                     className="mb-2 block text-sm font-medium text-gray-900 dark:text-white"
                   >
                     {" "}

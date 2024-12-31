@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # local apps
     "users.apps.UsersConfig",
+    "carts.apps.CartsConfig",
     "products.apps.ProductsConfig",
     "vendors.apps.VendorsConfig",
     # third-party packages
