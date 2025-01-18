@@ -7,17 +7,17 @@ export const fetchCategories = async (searchQuery) => {
     });
     return response.data;
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("Error fetching categories:", error.message);
     throw error;
   }
 };
 
 export const fetchCategory = async (categorySlug) => {
   try {
-    const response = await api.get(`/api/categories/${categorySlug}`);
+    const response = await api.get(`/api/categories/${categorySlug}/`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching category:", error);
+    console.error("Error fetching category:", error.message);
     throw error;
   }
 };

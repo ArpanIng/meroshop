@@ -1,178 +1,351 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Button, Label, Select, Textarea, TextInput } from "flowbite-react";
+import {
+  Avatar,
+  Button,
+  FileInput,
+  Label,
+  Select,
+  Textarea,
+  TextInput,
+} from "flowbite-react";
 import { useFormik } from "formik";
-import * as Yup from "yup";
 import PropTypes from "prop-types";
-import DashboardMainLayout from "../../layouts/DashboardMainLayout";
-import DashboardFormLayout from "../../layouts/DashboardFormLayout";
-import api from "../../services/api/endpoint";
+import { useChoices } from "../../contexts/ChoicesContext";
+import Loading from "../../components/Loading";
+import { productValidationSchema } from "../../schemas/productValidationSchema";
+import { fetchCategories } from "../../services/api/categoryApi";
+import { fetchVendors } from "../../services/api/vendorApi";
 
-function ProductForm({ mode }) {
-  const [statusChoices, setStatusChoices] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
+function ProductForm({ initialValues, onSubmit, isEditMode = false }) {
   const [loading, setLoading] = useState(false);
-  let { productId } = useParams();
-  const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const { productStatusChoices } = useChoices();
 
-  const initialValues = {
-    name: "",
-    description: "",
-    price: "",
-    discountPrice: "",
-    stock: "",
-    image: "",
-    status: "",
-    category: "",
-    vendor: "",
-  };
-
-  const validationSchema = Yup.object({
-    name: Yup.string()
-      .min(3, "Name must be at least 3 characters")
-      .max(50, "Name cannot exceed 50 characters")
-      .required("Product name is required"),
-    description: Yup.string()
-      .min(10, "Description must be at least 10 characters")
-      .max(500, "Description cannot exceed 500 characters")
-      .required("Description is required"),
-    price: Yup.number()
-      .min(10, "Price must be at least 10")
-      .typeError("Price must be a number")
-      .positive("Price must be a positive number")
-      .required("Price is required"),
-    discountPrice: Yup.number()
-      .min(0, "Discount Price cannot be negative")
-      .max(Yup.ref("price"), "Discount Price cannot be greater than the Price")
-      .typeError("Discount Price must be a number"),
-
-    stock: Yup.number()
-      .typeError("Stock must be a number")
-      .required("Stock is required")
-      .integer("Stock must be an integer")
-      .min(0, "Stock cannot be negative"),
-    image: Yup.string().url("Image must be a valid URL"),
-    status: Yup.string().required("Status is required"),
-    category: Yup.string()
-      .required("Category is required")
-      .min(2, "Category must be at least 2 characters"),
-    vendor: Yup.string()
-      .required("Vendor is required")
-      .min(2, "Vendor must be at least 2 characters"),
-  });
-
-  const formik = useFormik({
+  const {
+    values,
+    errors,
+    touched,
+    handleBlur,
+    handleChange,
+    setFieldValue,
+    handleSubmit,
+    isSubmitting,
+  } = useFormik({
     initialValues,
-    validationSchema,
-    onSubmit: async (values, { resetForm }) => {},
+    validationSchema: productValidationSchema,
+    onSubmit: async (values, actions) => {
+      try {
+        await onSubmit(values, actions);
+      } catch (error) {
+        if (error.response && error.response.data) {
+          const errorData = error.response.data;
+          // map backend errors to formik
+          const errors = {};
+          Object.keys(errorData).forEach((field) => {
+            errors[field] = errorData[field].join("");
+          });
+          actions.setErrors(errors); // Set backend errors in Formik
+        } else {
+          console.error("An error occured. Please try again.");
+        }
+        console.error("Error submitting form:", error);
+      } finally {
+        actions.setSubmitting(false);
+      }
+    },
   });
 
-  const fetchMetaData = async () => {
+  const getCategories = async () => {
     setLoading(true);
     try {
-      const url = vendorId ? `/api/products/${productId}` : "/api/products/";
-      const response = await api.options(url);
-      const optionStatusData = vendorId
-        ? response.data.actions?.PUT?.status?.choices || []
-        : response.data.actions?.POST?.status?.choices || [];
-      setStatusChoices(optionStatusData);
+      const data = await fetchCategories();
+      setCategories(data);
     } catch (error) {
-      console.error("Error fetching metadata:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProduct = async () => {
+  const getVendors = async () => {
+    setLoading(true);
     try {
-      const response = await api.get(`/api/products/${productId}/`);
-      console.log(response.data);
+      const data = await fetchVendors();
+      setVendors(data);
     } catch (error) {
-      console.error("Error fetching product:", error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
+  console.log(values);
+
   useEffect(() => {
-    if (mode === "EDIT" && productId) {
-      fetchProduct();
-    }
-    fetchMetaData();
+    getCategories();
+    getVendors();
   }, []);
 
   return (
-    <DashboardMainLayout>
-      <DashboardFormLayout
-        formTitle={mode === "ADD" ? "Add a new product" : "Edit product"}
-      >
-        <form>
-          <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
-            <div className="sm:col-span-2">
-              <Label
-                htmlFor="name"
-                value="Product name"
-                className="block mb-2"
-              />
-              <TextInput type="text" id="name" name="name" />
-            </div>
-            <div>
-              <Label htmlFor="price" value="Price" className="block mb-2" />
-              <TextInput type="number" id="price" name="price" />
-            </div>
-            <div>
-              <Label
-                htmlFor="discount-price"
-                value="Discount price"
-                className="block mb-2"
-              />
-              <TextInput
-                type="number"
-                id="discount-price"
-                name="discountPrice"
-              />
-            </div>
-            <div>
-              <Label htmlFor="stock" value="Stock" className="block mb-2" />
-              <TextInput type="number" id="stock" name="stock" />
-            </div>
-            <div>
-              <Label htmlFor="status" value="status" className="block mb-2" />
-              <Select>
-                <option>lol</option>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="price" value="Price" className="block mb-2" />
-              <TextInput type="number" id="price" name="price" />
-            </div>
-            <div>
-              <Label htmlFor="price" value="Price" className="block mb-2" />
-              <TextInput type="number" id="price" name="price" />
-            </div>
-            <div className="sm:col-span-2">
-              <Label
-                htmlFor="description"
-                value="Description"
-                className="block mb-2"
-              />
-              <Textarea id="description" name="description" rows={8} />
-            </div>
+    <form onSubmit={handleSubmit}>
+      <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+        {/* Name field */}
+        <div className="sm:col-span-2">
+          <Label htmlFor="name" value="Product name" className="block mb-2" />
+          <TextInput
+            type="text"
+            id="name"
+            name="name"
+            value={values.name}
+            onChange={handleChange}
+            color={touched.name && errors.name ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.name && errors.name ? (
+                  <span>{errors.name}</span>
+                ) : null}
+              </>
+            }
+          />
+        </div>
+        {/* Price field */}
+        <div className="w-full">
+          <Label htmlFor="price" value="Price" className="block mb-2" />
+          <TextInput
+            type="number"
+            id="price"
+            name="price"
+            value={values.price}
+            onChange={handleChange}
+            color={touched.price && errors.price ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.price && errors.price ? (
+                  <span>{errors.price}</span>
+                ) : (
+                  "Original price of the product."
+                )}
+              </>
+            }
+          />
+        </div>
+        {/* Discount price field */}
+        <div className="w-full">
+          <Label
+            htmlFor="discount-price"
+            value="Discount price"
+            className="block mb-2"
+          />
+          <TextInput
+            type="number"
+            id="discount-price"
+            name="discountPrice"
+            value={values.discountPrice}
+            onChange={handleChange}
+            color={
+              touched.discountPrice && errors.discountPrice ? "failure" : "gray"
+            }
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.discountPrice && errors.discountPrice ? (
+                  <span>{errors.discountPrice}</span>
+                ) : (
+                  "Discounted price of the product."
+                )}
+              </>
+            }
+          />
+        </div>
+        {/* Stock field */}
+        <div className="w-full">
+          <Label htmlFor="stock" value="Stock" className="block mb-2" />
+          <TextInput
+            type="number"
+            id="stock"
+            name="stock"
+            value={values.stock}
+            onChange={handleChange}
+            color={touched.stock && errors.stock ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.stock && errors.stock ? (
+                  <span>{errors.stock}</span>
+                ) : null}
+              </>
+            }
+          />
+        </div>
+        {/* Status field */}
+        <div className="w-full">
+          <Label htmlFor="status" value="Status" className="block mb-2" />
+          {loading ? (
+            <Loading />
+          ) : (
+            <Select
+              id="status"
+              name="status"
+              value={values.status}
+              onChange={handleChange}
+              color={touched.status && errors.status ? "failure" : "gray"}
+              onBlur={handleBlur}
+              helperText={
+                <>
+                  {touched.status && errors.status ? (
+                    <span>{errors.status}</span>
+                  ) : null}
+                </>
+              }
+            >
+              <option value="" disabled>
+                Select status
+              </option>
+              {productStatusChoices.map((choice) => (
+                <option key={choice.value} value={choice.value}>
+                  {choice.label}
+                </option>
+              ))}
+            </Select>
+          )}
+        </div>
+        {/* Image preview */}
+        {/* {values.image && (
+          <div className="sm:col-span-2">
+            <Label
+              htmlFor="image"
+              value="Preview image"
+              className="block mb-2"
+            />
+            <Avatar img={values.image} alt={`${values.name} image`} size="xl" />
           </div>
-          <Button
-            type="submit"
-            color="blue"
-            className="mt-4"
-            disabled={formik.isSubmitting}
+        )} */}
+        {/* Image field */}
+        <div className="sm:col-span-2">
+          <Label htmlFor="image" value="Upload image" className="block mb-2" />
+          <FileInput
+            id="image"
+            accept="image/*"
+            multiple={false}
+            name="image"
+            // onChange={handleChange}
+            onChange={(event) => {
+              // accessing name propetry of the file object
+              setFieldValue("image", event.target.files[0]);
+            }}
+            color={touched.image && errors.image ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.image && errors.image ? (
+                  <span>{errors.image}</span>
+                ) : null}
+              </>
+            }
+          />
+        </div>
+        {/* Category field */}
+        <div className="w-full">
+          <Label htmlFor="category" value="Category" className="block mb-2" />
+          <Select
+            id="category"
+            name="category"
+            value={values.category}
+            onChange={handleChange}
+            color={touched.category && errors.category ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.category && errors.category ? (
+                  <span>{errors.category}</span>
+                ) : null}
+              </>
+            }
           >
-            {mode === "ADD" ? "Add product" : "Edit product"}
-          </Button>
-        </form>
-      </DashboardFormLayout>
-    </DashboardMainLayout>
+            <option value="" disabled>
+              Select category
+            </option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {/* Vendor field */}
+        <div className="w-full">
+          <Label htmlFor="vendor" value="Vendor" className="block mb-2" />
+          <Select
+            id="vendor"
+            name="vendor"
+            value={values.vendor}
+            onChange={handleChange}
+            color={touched.vendor && errors.vendor ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.vendor && errors.vendor ? (
+                  <span>{errors.vendor}</span>
+                ) : null}
+              </>
+            }
+          >
+            <option value="" disabled>
+              Select vendor
+            </option>
+            {vendors.map((vendor) => (
+              <option key={vendor.id} value={vendor.id}>
+                {vendor.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {/* Description field */}
+        <div className="sm:col-span-2">
+          <Label
+            htmlFor="description"
+            value="Description"
+            className="block mb-2"
+          />
+          <Textarea
+            id="description"
+            name="description"
+            rows={8}
+            value={values.description}
+            onChange={handleChange}
+            color={
+              touched.description && errors.description ? "failure" : "gray"
+            }
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.description && errors.description ? (
+                  <span>{errors.description}</span>
+                ) : null}
+              </>
+            }
+          />
+        </div>
+      </div>
+      <Button
+        type="submit"
+        color="blue"
+        className="mt-4"
+        disabled={isSubmitting}
+      >
+        {isEditMode ? "Edit product" : "Add product"}
+      </Button>
+    </form>
   );
 }
 
 ProductForm.propTypes = {
-  mode: PropTypes.oneOf(["ADD", "EDIT"]).isRequired,
+  initialValues: PropTypes.object.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  isEditMode: PropTypes.bool,
 };
 
 export default ProductForm;

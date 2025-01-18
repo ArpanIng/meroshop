@@ -35,7 +35,6 @@ function CategoryUpdate() {
   const handleSubmit = async (values) => {
     try {
       const response = await updateCategory(categorySlug, values);
-      console.log("updare response", response);
       if (response.status === 200) {
         navigate("/admin/categories");
       }

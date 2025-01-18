@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Slide, ToastContainer } from "react-toastify";
 import AuthProvider from "./contexts/AuthContext";
 import MainLayout from "./layouts/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -20,15 +21,20 @@ import VendorDashboard from "./pages/dashboard/VendorDashboard";
 import CategoryCreate from "./pages/products/CategoryCreate";
 import CategoryList from "./pages/products/CategoryList";
 import CategoryUpdate from "./pages/products/CategoryUpdate";
+import ProductCreate from "./pages/products/ProductCreate";
 import ProductDetail from "./pages/products/ProductDetail";
-import ProductForm from "./pages/products/ProductForm";
+import ProductUpdate from "./pages/products/ProductUpdate";
 import ProductList from "./pages/products/ProductList";
-import VendorForm from "./pages/vendors/VendorForm";
+import VendorCreate from "./pages/vendors/VendorCreate";
 import VendorList from "./pages/vendors/VendorList";
+import VendorUpdate from "./pages/vendors/VendorUpdate";
+import CartProvider from "./contexts/CartContext";
+import ChoicesProvider from "./contexts/ChoicesContext";
 
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer hideProgressBar={true} transition={Slide} />
       <AuthProvider>
         <Routes>
           <Route path="/" element={<MainLayout />}>
@@ -82,7 +88,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/products-detail" element={<ProductDetail />} />
+            <Route
+              path="/products/:productSlug"
+              element={
+                <CartProvider>
+                  <ProductDetail />
+                </CartProvider>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="/dashboard" element={<VendorDashboard />} />
@@ -101,19 +114,41 @@ function App() {
             {/* product routes */}
             <Route path="products">
               <Route index element={<ProductList />} />
-              <Route path="add" element={<ProductForm mode="ADD" />} />
               <Route
-                path=":productId/edit"
-                element={<ProductForm mode="EDIT" />}
+                path="add"
+                element={
+                  <ChoicesProvider>
+                    <ProductCreate />
+                  </ChoicesProvider>
+                }
+              />
+              <Route
+                path=":productSlug/edit"
+                element={
+                  <ChoicesProvider>
+                    <ProductUpdate />
+                  </ChoicesProvider>
+                }
               />
             </Route>
             {/* vendor routes */}
             <Route path="vendors">
               <Route index element={<VendorList />} />
-              <Route path="add" element={<VendorForm mode="ADD" />} />
+              <Route
+                path="add"
+                element={
+                  <ChoicesProvider>
+                    <VendorCreate />
+                  </ChoicesProvider>
+                }
+              />
               <Route
                 path=":vendorId/edit"
-                element={<VendorForm mode="EDIT" />}
+                element={
+                  <ChoicesProvider>
+                    <VendorUpdate />
+                  </ChoicesProvider>
+                }
               />
             </Route>
           </Route>

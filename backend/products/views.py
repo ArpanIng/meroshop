@@ -1,5 +1,8 @@
+from rest_framework import filters
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from users.permissions import IsAdmin, IsAdminOrReadOnly
 
@@ -8,16 +11,11 @@ from .serializers import CategorySerializer, ProductSerializer
 
 
 class CategoryListView(ListCreateAPIView):
-    permission_classes = [IsAdmin]
+    queryset = Category.objects.all()
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = CategorySerializer
-
-    def get_queryset(self):
-        queryset = Category.objects.all()
-        # filtering based on query parameters
-        search_query = self.request.query_params.get("q")
-        if search_query is not None:
-            queryset = queryset.filter(name__icontains=search_query)
-        return queryset
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name"]
 
 
 class CategoryDetailView(RetrieveUpdateDestroyAPIView):
@@ -33,6 +31,18 @@ class ProductListView(ListCreateAPIView):
     serializer_class = ProductSerializer
 
 
+class ProductStatusChoicesView(APIView):
+    """View to retrieve status choices of a Product model."""
+
+    def get(self, request, *args, **kwargs):
+        status_choices = [
+            {"value": value, "label": label} for value, label in Product.Status.choices
+        ]
+        return Response({"choices": status_choices})
+
+
 class ProductDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    lookup_field = "slug"
+    lookup_url_kwarg = "product_slug"

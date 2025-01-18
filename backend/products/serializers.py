@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from vendors.serializers import VendorSerializer
@@ -13,7 +15,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source="get_status_display")
     has_discount = serializers.SerializerMethodField()
     discount_percentage = serializers.SerializerMethodField()
 
@@ -52,18 +53,20 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only_fields = ["slug"]
 
     def validate(self, attrs):
-        if attrs["discount_price"] >= attrs["price"]:
-            raise serializers.ValidationError(
-                {
-                    "discount_price": "Discount price cannot be greater than or equal to the original price.",
-                }
-            )
+        # Check if discount_price is provided
+        if "discount_price" in attrs and attrs["discount_price"] is not None:
+            if attrs["discount_price"] >= attrs["price"]:
+                raise serializers.ValidationError(
+                    {
+                        "discount_price": "Discount price cannot be greater than or equal to the original price.",
+                    }
+                )
         return attrs
 
-    def get_has_discount(self, obj):
+    def get_has_discount(self, obj) -> bool:
         return obj.has_discount
 
-    def get_discount_percentage(self, obj):
+    def get_discount_percentage(self, obj) -> Decimal:
         return obj.discount_percentage
 
     def to_representation(self, instance):
@@ -72,4 +75,7 @@ class ProductSerializer(serializers.ModelSerializer):
             data["category"] = CategorySerializer(instance.category).data
         if self.fields_to_include is None or "vendor" in self.fields_to_include:
             data["vendor"] = VendorSerializer(instance.vendor).data
+
+        # return the label of the choice instead of value.
+        data["status"] = instance.get_status_display()
         return data

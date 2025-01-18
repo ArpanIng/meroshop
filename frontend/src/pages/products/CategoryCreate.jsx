@@ -12,10 +12,9 @@ function CategoryCreate() {
     name: "",
   };
 
-  const handleSubmit = async (values, { resetForm }) => {
+  const handleSubmit = async (values) => {
     try {
       const response = await createCategory(values);
-      resetForm();
       if (response.status === 201) {
         navigate("/admin/categories");
       }
