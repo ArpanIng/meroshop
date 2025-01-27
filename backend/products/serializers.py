@@ -2,34 +2,38 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
+from users.serializers import DynamicFieldsModelSerializer
+from vendors.models import Vendor
 from vendors.serializers import VendorSerializer
 
 from .models import Category, Product
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = Category
         fields = ["id", "name", "slug", "created_at", "updated_at"]
         read_only_fields = ["slug"]
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(DynamicFieldsModelSerializer):
+    category = CategorySerializer(read_only=True, fields=["id", "name", "slug"])
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        write_only=True,
+        source="category",
+    )
+    vendor = VendorSerializer(
+        read_only=True,
+        fields=["id", "name", "description", "email", "address", "phone_number"],
+    )
+    vendor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Vendor.objects.all(),
+        write_only=True,
+        source="vendor",
+    )
     has_discount = serializers.SerializerMethodField()
     discount_percentage = serializers.SerializerMethodField()
-
-    # Dynamically modifying fields
-    def __init__(self, *args, **kwargs):
-        self.fields_to_include = kwargs.pop("fields", None)
-        super().__init__(*args, **kwargs)
-        if self.fields_to_include is not None:
-            # Drop any fields that are not specified in the `fields` argument.
-            # fields - refers to a keyword argument passed when initializing the serializer
-            allowed = set(self.fields_to_include)
-            # self.fields - represents all the fields defined in the serializer
-            existing = set(self.fields)
-            for field_name in existing - allowed:
-                self.fields.pop(field_name)
 
     class Meta:
         model = Product
@@ -43,7 +47,9 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock",
             "image",
             "category",
+            "category_id",
             "vendor",
+            "vendor_id",
             "status",
             "has_discount",
             "discount_percentage",
@@ -53,6 +59,10 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only_fields = ["slug"]
 
     def validate(self, attrs):
+        """
+        Check that product discount price is less than the product original price.
+        """
+
         # Check if discount_price is provided
         if "discount_price" in attrs and attrs["discount_price"] is not None:
             if attrs["discount_price"] >= attrs["price"]:
@@ -71,11 +81,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if self.fields_to_include is None or "category" in self.fields_to_include:
-            data["category"] = CategorySerializer(instance.category).data
-        if self.fields_to_include is None or "vendor" in self.fields_to_include:
-            data["vendor"] = VendorSerializer(instance.vendor).data
-
-        # return the label of the choice instead of value.
-        data["status"] = instance.get_status_display()
+        # self.fields is None - serializer includes all fields by default
+        # only display the field if 'fields' is None or is explicitly included in 'fields' when initializing the serializer
+        if self.fields is None or "status" in self.fields:
+            # return the label of the choice instead of value.
+            data["status"] = instance.get_status_display()
         return data

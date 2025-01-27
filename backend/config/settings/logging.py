@@ -2,6 +2,8 @@ import os
 
 from config.env import BASE_DIR
 
+DJANGO_APPS_NAMES = ["carts", "products", "users", "vendors"]
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -31,7 +33,23 @@ LOGGING = {
     "loggers": {
         "django": {
             "level": "INFO",
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
+        },
+        "users": {
+            "level": "INFO",
+            "handlers": ["file"],
+        },
+        "vendors": {
+            "level": "INFO",
+            "handlers": ["file"],
+        },
+        "products": {
+            "level": "INFO",
+            "handlers": ["file"],
+        },
+        "carts": {
+            "level": "INFO",
+            "handlers": ["file"],
         },
     },
 }
