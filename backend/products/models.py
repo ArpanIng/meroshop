@@ -110,9 +110,8 @@ class Product(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         # set the product status based on the stock
-        self.status = (
-            Product.Status.OUT_OF_STOCK if self.stock == 0 else Product.Status.ACTIVE
-        )
+        if self.stock == 0:
+            self.status = Product.Status.OUT_OF_STOCK
         self.full_clean()
         super().save(*args, **kwargs)
 
