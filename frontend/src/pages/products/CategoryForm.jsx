@@ -17,26 +17,7 @@ function CategoryForm({ initialValues, onSubmit, isEditMode = false }) {
     initialValues,
     validationSchema: categoryValidationSchema,
     enableReinitialize: true, // Reinitializes form values when initialValues change
-    onSubmit: async (values, actions) => {
-      try {
-        await onSubmit(values, actions);
-      } catch (error) {
-        if (error.response && error.response.data) {
-          const errorData = error.response.data;
-          // map backend errors to formik
-          const errors = {};
-          Object.keys(errorData).forEach((field) => {
-            errors[field] = errorData[field].join("");
-          });
-          actions.setErrors(errors); // Set backend errors in Formik
-        } else {
-          console.error("An error occured. Please try again.");
-        }
-        console.error("Error submitting form:", error);
-      } finally {
-        actions.setSubmitting(false);
-      }
-    },
+    onSubmit,
   });
 
   return (

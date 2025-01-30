@@ -115,7 +115,7 @@ function VendorList() {
                             <Table.Cell>{vendor.user.email}</Table.Cell>
                             <Table.Cell>{vendor.email}</Table.Cell>
                             <Table.Cell>{vendor.address}</Table.Cell>
-                            <Table.Cell>{vendor.phone_number}</Table.Cell>
+                            <Table.Cell>{vendor.phoneNumber}</Table.Cell>
                             <Table.Cell>
                               <Badge
                                 color={
@@ -126,10 +126,10 @@ function VendorList() {
                               </Badge>
                             </Table.Cell>
                             <Table.Cell>
-                              {formatDate(vendor.created_at)}
+                              {formatDate(vendor.createdAt)}
                             </Table.Cell>
                             <Table.Cell>
-                              {formatDate(vendor.updated_at)}
+                              {formatDate(vendor.updatedAt)}
                             </Table.Cell>
                             <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
                               <Link

@@ -1,4 +1,5 @@
 import React from "react";
+import humps from "humps";
 import { useNavigate } from "react-router-dom";
 import VendorForm from "./VendorForm";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
@@ -11,30 +12,36 @@ function VendorCreate() {
   const initialValues = {
     name: "",
     description: "",
-    user: "",
+    userId: "",
     email: "",
     address: "",
     phoneNumber: "",
     status: "",
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values, actions) => {
     try {
-      const submitFormDataValues = {
-        name: values.name,
-        description: values.description,
-        user: values.user,
-        email: values.email,
-        address: values.address,
-        phone_number: values.phoneNumber,
-        status: values.status,
-      };
-      const response = await createVendor(submitFormDataValues);
+      const response = await createVendor(values);
       if (response.status === 201) {
         navigate("/admin/vendors");
       }
     } catch (error) {
-      throw error;
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        // map backend errors to formik
+        const errors = {};
+        Object.keys(errorData).forEach((field) => {
+          // convert the error data field into camelcase
+          const camelCaseField = humps.camelize(field);
+
+          errors[camelCaseField] = errorData[field].join("");
+        });
+        actions.setErrors(errors); // Set backend errors in Formik
+      } else {
+        console.error("An error occured. Please try again.");
+      }
+    } finally {
+      actions.setSubmitting(false);
     }
   };
 

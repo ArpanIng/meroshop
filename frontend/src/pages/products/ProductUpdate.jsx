@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import humps from "humps";
 import { useNavigate, useParams } from "react-router-dom";
 import ProductForm from "./ProductForm";
 import { useChoices } from "../../contexts/ChoicesContext";
@@ -9,7 +10,7 @@ import { fetchProduct, updateProduct } from "../../services/api/productApi";
 
 function ProductUpdate() {
   const [product, setProduct] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   let { productSlug } = useParams();
   const { productStatusChoices } = useChoices();
@@ -26,46 +27,56 @@ function ProductUpdate() {
     name: product.name || "",
     description: product.description || "",
     price: product.price || "",
-    discountPrice: product.discount_price || "",
+    discountPrice: product.discountPrice || "",
     stock: product.stock || "",
     image: product.image || "",
-    category: product.category ? product.category.id : "",
-    vendor: product.vendor ? product.vendor.id : "",
+    categoryId: product.category ? product.category.id : "",
+    vendorId: product.vendor ? product.vendor.id : "",
     status: selectedStatusOptionValue,
   };
 
+  console.log(initialValues.status);
+
   const getProduct = async () => {
-    setLoading(true);
     try {
       const data = await fetchProduct(productSlug);
       setProduct(data);
     } catch (error) {
-      console.error("Error loading product data:", error.message);
+      if (error.response && error.response.status === 404) {
+        // Handle error 404 not found when fetch api from backend
+        navigate("/notFound", {
+          state: { fromApiRequest: true },
+          replace: true,
+        });
+        console.error("Error loading product data:", error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (values) => {
-    // Multipart Bodies
-    const formData = new FormData();
-    // Append the fields to formData
-    formData.append("name", values.name);
-    formData.append("description", values.description);
-    formData.append("price", values.price);
-    formData.append("discount_price", values.discountPrice);
-    formData.append("stock", values.stock);
-    formData.append("image", values.image);
-    formData.append("category", values.category);
-    formData.append("vendor", values.vendor);
-    formData.append("status", values.status);
+  const handleSubmit = async (values, actions) => {
     try {
-      const response = await updateProduct(productSlug, formData);
+      const response = await updateProduct(productSlug, values);
       if (response.status === 200) {
         navigate("/admin/products");
       }
     } catch (error) {
-      throw error;
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        // map backend errors to formik
+        const errors = {};
+        Object.keys(errorData).forEach((field) => {
+          // convert the error data field into camelcase
+          const camelCaseField = humps.camelize(field);
+          errors[camelCaseField] = errorData[field].join("");
+        });
+        actions.setErrors(errors); // Set backend errors in Formik
+      } else {
+        console.error("An error occured. Please try again.");
+      }
+    } finally {
+      actions.setSubmitting(false);
     }
   };
 

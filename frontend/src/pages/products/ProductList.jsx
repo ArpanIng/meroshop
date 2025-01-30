@@ -127,7 +127,7 @@ function ProductList() {
                               </Badge>
                             </Table.Cell>
                             <Table.Cell>रु{product.price}</Table.Cell>
-                            <Table.Cell>रु{product.discount_price}</Table.Cell>
+                            <Table.Cell>रु{product.discountPrice}</Table.Cell>
                             <Table.Cell>{product.stock}</Table.Cell>
                             <Table.Cell>
                               <Badge color="gray">{product.vendor.name}</Badge>
@@ -142,10 +142,10 @@ function ProductList() {
                               </Badge>
                             </Table.Cell>
                             <Table.Cell>
-                              {formatDate(product.created_at)}
+                              {formatDate(product.createdAt)}
                             </Table.Cell>
                             <Table.Cell>
-                              {formatDate(product.updated_at)}
+                              {formatDate(product.updatedAt)}
                             </Table.Cell>
                             <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
                               <Link

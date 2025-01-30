@@ -23,26 +23,8 @@ function VendorForm({ initialValues, onSubmit, isEditMode = false }) {
   } = useFormik({
     initialValues,
     validationSchema: vendorValidationSchema,
-    onSubmit: async (values, actions) => {
-      try {
-        await onSubmit(values, actions);
-      } catch (error) {
-        if (error.response && error.response.data) {
-          const errorData = error.response.data;
-          // map backend errors to formik
-          const errors = {};
-          Object.keys(errorData).forEach((field) => {
-            errors[field] = errorData[field].join("");
-          });
-          actions.setErrors(errors); // Set backend errors in Formik
-        } else {
-          console.error("An error occured. Please try again.");
-        }
-        console.error("Error submitting form:", error);
-      } finally {
-        actions.setSubmitting(false);
-      }
-    },
+    enableReinitialize: true, // Reinitializes form values when initialValues change
+    onSubmit,
   });
 
   const getVendorUsers = async () => {
@@ -92,15 +74,15 @@ function VendorForm({ initialValues, onSubmit, isEditMode = false }) {
           ) : (
             <Select
               id="user"
-              name="user"
-              value={values.user}
+              name="userId"
+              value={values.userId}
               onChange={handleChange}
-              color={touched.user && errors.user ? "failure" : "gray"}
+              color={touched.userId && errors.userId ? "failure" : "gray"}
               onBlur={handleBlur}
               helperText={
                 <>
-                  {touched.user && errors.user ? (
-                    <span>{errors.user}</span>
+                  {touched.userId && errors.userId ? (
+                    <span>{errors.userId}</span>
                   ) : null}
                 </>
               }

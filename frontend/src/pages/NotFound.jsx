@@ -1,7 +1,13 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function NotFound() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // check if the user came from an API request or a regular navigation
+  const fromApiRequest = location.state?.fromApiRequest;
+
   return (
     <section className="bg-white dark:bg-gray-900">
       <div className="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
@@ -16,12 +22,23 @@ function NotFound() {
             Sorry, we can't find that page. You'll find lots to explore on the
             home page.
           </p>
-          <Link
-            to="/"
-            className="inline-flex text-white bg-blue-600 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:focus:ring-primary-900 my-4"
-          >
-            Back to Homepage
-          </Link>
+          {fromApiRequest ? (
+            <button
+              type="button"
+              className="inline-flex text-white bg-blue-600 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:focus:ring-primary-900 my-4"
+              // navigate back to the previous page
+              onClick={() => navigate(-1)}
+            >
+              Go Back
+            </button>
+          ) : (
+            <Link
+              to="/"
+              className="inline-flex text-white bg-blue-600 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:focus:ring-primary-900 my-4"
+            >
+              Back to Homepage
+            </Link>
+          )}
         </div>
       </div>
     </section>

@@ -96,11 +96,13 @@ function App() {
                 </CartProvider>
               }
             />
+            <Route path="/notFound" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="/dashboard" element={<VendorDashboard />} />
           <Route path="admin">
             <Route index element={<AdminDashboard />} />
+            {/* user routes */}
             <Route path="users">
               <Route index element={<UserList />} />
               <Route path="add" element={<UserForm />} />

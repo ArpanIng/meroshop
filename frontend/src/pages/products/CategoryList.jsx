@@ -111,10 +111,10 @@ function CategoryList() {
                             </Table.Cell>
                             <Table.Cell>{category.slug}</Table.Cell>
                             <Table.Cell>
-                              {formatDate(category.created_at)}
+                              {formatDate(category.createdAt)}
                             </Table.Cell>
                             <Table.Cell>
-                              {formatDate(category.updated_at)}
+                              {formatDate(category.updatedAt)}
                             </Table.Cell>
                             <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
                               <Link

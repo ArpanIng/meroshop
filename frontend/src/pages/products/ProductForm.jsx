@@ -34,26 +34,8 @@ function ProductForm({ initialValues, onSubmit, isEditMode = false }) {
   } = useFormik({
     initialValues,
     validationSchema: productValidationSchema,
-    onSubmit: async (values, actions) => {
-      try {
-        await onSubmit(values, actions);
-      } catch (error) {
-        if (error.response && error.response.data) {
-          const errorData = error.response.data;
-          // map backend errors to formik
-          const errors = {};
-          Object.keys(errorData).forEach((field) => {
-            errors[field] = errorData[field].join("");
-          });
-          actions.setErrors(errors); // Set backend errors in Formik
-        } else {
-          console.error("An error occured. Please try again.");
-        }
-        console.error("Error submitting form:", error);
-      } finally {
-        actions.setSubmitting(false);
-      }
-    },
+    enableReinitialize: true, // Reinitializes form values when initialValues change
+    onSubmit,
   });
 
   const getCategories = async () => {
@@ -79,8 +61,6 @@ function ProductForm({ initialValues, onSubmit, isEditMode = false }) {
       setLoading(false);
     }
   };
-
-  console.log(values);
 
   useEffect(() => {
     getCategories();
@@ -225,16 +205,17 @@ function ProductForm({ initialValues, onSubmit, isEditMode = false }) {
         )} */}
         {/* Image field */}
         <div className="sm:col-span-2">
-          <Label htmlFor="image" value="Upload image" className="block mb-2" />
+          <Label
+            htmlFor="productImageFile"
+            value="Upload image"
+            className="block mb-2"
+          />
           <FileInput
-            id="image"
+            id="productImageFile"
             accept="image/*"
-            multiple={false}
             name="image"
-            // onChange={handleChange}
-            onChange={(event) => {
-              // accessing name propetry of the file object
-              setFieldValue("image", event.target.files[0]);
+            onChange={(e) => {
+              setFieldValue("image", e.currentTarget.files[0]);
             }}
             color={touched.image && errors.image ? "failure" : "gray"}
             onBlur={handleBlur}
@@ -252,15 +233,15 @@ function ProductForm({ initialValues, onSubmit, isEditMode = false }) {
           <Label htmlFor="category" value="Category" className="block mb-2" />
           <Select
             id="category"
-            name="category"
-            value={values.category}
+            name="categoryId"
+            value={values.categoryId}
             onChange={handleChange}
-            color={touched.category && errors.category ? "failure" : "gray"}
+            color={touched.categoryId && errors.categoryId ? "failure" : "gray"}
             onBlur={handleBlur}
             helperText={
               <>
-                {touched.category && errors.category ? (
-                  <span>{errors.category}</span>
+                {touched.categoryId && errors.categoryId ? (
+                  <span>{errors.categoryId}</span>
                 ) : null}
               </>
             }
@@ -280,15 +261,15 @@ function ProductForm({ initialValues, onSubmit, isEditMode = false }) {
           <Label htmlFor="vendor" value="Vendor" className="block mb-2" />
           <Select
             id="vendor"
-            name="vendor"
-            value={values.vendor}
+            name="vendorId"
+            value={values.vendorId}
             onChange={handleChange}
-            color={touched.vendor && errors.vendor ? "failure" : "gray"}
+            color={touched.vendorId && errors.vendorId ? "failure" : "gray"}
             onBlur={handleBlur}
             helperText={
               <>
-                {touched.vendor && errors.vendor ? (
-                  <span>{errors.vendor}</span>
+                {touched.vendorId && errors.vendorId ? (
+                  <span>{errors.vendorId}</span>
                 ) : null}
               </>
             }

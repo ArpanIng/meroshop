@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import humps from "humps";
 import { useNavigate, useParams } from "react-router-dom";
 import VendorForm from "./VendorForm";
 import { useChoices } from "../../contexts/ChoicesContext";
@@ -9,7 +10,7 @@ import { fetchVendor, updateVendor } from "../../services/api/vendorApi";
 
 function VendorUpdate() {
   const [vendor, setVendor] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   let { vendorId } = useParams();
   const { vendorStatusChoices } = useChoices();
@@ -25,42 +26,53 @@ function VendorUpdate() {
   const initialValues = {
     name: vendor.name || "",
     description: vendor.description || "",
-    user: vendor.user ? vendor.user.id : "",
+    userId: vendor.user ? vendor.user.id : "",
     email: vendor.email || "",
     address: vendor.address || "",
-    phoneNumber: vendor.phone_number || "",
+    phoneNumber: vendor.phoneNumber || "",
     status: selectedStatusOptionValue,
   };
 
   const getVendor = async () => {
-    setLoading(true);
     try {
       const data = await fetchVendor(vendorId);
       setVendor(data);
     } catch (error) {
-      console.error("Error loading vendor data:", error.message);
+      if (error.response && error.response.status === 404) {
+        // Handle error 404 not found when fetch api from backend
+        navigate("/notFound", {
+          state: { fromApiRequest: true },
+          replace: true,
+        });
+        console.error("Error loading vendor data:", error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values, actions) => {
     try {
-      const submitFormDataValues = {
-        name: values.name,
-        description: values.description,
-        user: values.user,
-        email: values.email,
-        address: values.address,
-        phone_number: values.phoneNumber,
-        status: values.status,
-      };
-      const response = await updateVendor(vendorId, submitFormDataValues);
+      const response = await updateVendor(vendorId, values);
       if (response.status === 200) {
         navigate("/admin/vendors");
       }
     } catch (error) {
-      throw error;
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        // map backend errors to formik
+        const errors = {};
+        Object.keys(errorData).forEach((field) => {
+          // convert the error data field into camelcase
+          const camelCaseField = humps.camelize(field);
+          errors[camelCaseField] = errorData[field].join("");
+        });
+        actions.setErrors(errors); // Set backend errors in Formik
+      } else {
+        console.error("An error occured. Please try again.");
+      }
+    } finally {
+      actions.setSubmitting(false);
     }
   };
 
