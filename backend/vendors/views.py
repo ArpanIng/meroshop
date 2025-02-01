@@ -57,3 +57,40 @@ class VendorDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Vendor.objects.all().select_related("user")
     permission_classes = [IsVendorOwnerOrReadOnly | IsAdmin]
     serializer_class = VendorSerializer
+
+
+class VendorProductListView(ListAPIView):
+    """List all products for the currently authenticated vendor user."""
+
+    queryset = Product.objects.all().select_related("category")
+    permission_classes = [IsVendor]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        # user associated with Vendor model through 1:1 relationship
+        user = self.request.user.vendor
+        return super().get_queryset().filter(vendor=user)
+
+    def list(self, request, *args, **kwargs):
+        products = self.get_queryset()
+        serializer = self.get_serializer(
+            products,
+            many=True,
+            fields=[
+                "id",
+                "name",
+                "slug",
+                "description",
+                "price",
+                "discount_price",
+                "stock",
+                "image",
+                "category",
+                "status",
+                "has_discount",
+                "discount_percentage",
+                "created_at",
+                "updated_at",
+            ],
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
