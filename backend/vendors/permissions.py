@@ -16,15 +16,15 @@ class IsVendor(BasePermission):
         )
 
 
-class IsVendorOrReadOnly(BasePermission):
+class IsVendorOwnerOrReadOnly(BasePermission):
     """
-    The request is authenticated as a VENDOR user, or is a read-only request.
+    Object-level permission to only allow vendor owner of an object to edit it.
     """
 
-    def has_permission(self, request, view):
-        return bool(
-            request.user in SAFE_METHODS
-            or request.user
-            and request.user.is_authenticated
-            and request.user.role == UserRole.VENDOR
-        )
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request
+        if request.method in SAFE_METHODS:
+            return True
+
+        # write permissions are only allowed to the user of the vendor.
+        return obj.user == request.user

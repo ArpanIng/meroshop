@@ -94,6 +94,7 @@ class Product(models.Model):
         indexes = [
             models.Index(fields=["name"]),
         ]
+        ordering = ["-created_at"]
 
     def __str__(self) -> str:
         return self.name
