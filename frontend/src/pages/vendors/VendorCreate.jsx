@@ -20,8 +20,11 @@ function VendorCreate() {
   };
 
   const handleSubmit = async (values, actions) => {
+    // convert values to snake_case
+    const snakeCaseData = humps.decamelizeKeys(values);
+
     try {
-      const response = await createVendor(values);
+      const response = await createVendor(snakeCaseData);
       if (response.status === 201) {
         navigate("/admin/vendors");
       }

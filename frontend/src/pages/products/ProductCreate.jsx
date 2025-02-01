@@ -22,8 +22,19 @@ function ProductCreate() {
   };
 
   const handleSubmit = async (values, actions) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("description", values.description);
+    formData.append("price", values.price);
+    formData.append("discount_price", values.discountPrice);
+    formData.append("stock", values.stock);
+    formData.append("image", values.image);
+    formData.append("category_id", values.categoryId);
+    formData.append("vendor_id", values.vendorId);
+    formData.append("status", values.status);
+
     try {
-      const response = await createProduct(values);
+      const response = await createProduct(formData);
       if (response.status === 201) {
         navigate("/admin/products");
       }

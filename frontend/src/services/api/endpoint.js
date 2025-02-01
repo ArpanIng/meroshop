@@ -18,10 +18,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    if (config.data) {
-      // convert camelCase to snake_case (python naming conventions)
-      config.data = humps.decamelizeKeys(config.data);
-    }
     return config;
   },
   (error) => {

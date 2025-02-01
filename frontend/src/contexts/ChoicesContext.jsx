@@ -8,7 +8,7 @@ function ChoicesProvider({ children }) {
   const [productStatusChoices, setProductStatusChoices] = useState([]);
   const [vendorStatusChoices, setVendorStatusChoices] = useState([]);
   const [productStatusLoading, setProductStatusLoading] = useState(true);
-  const [vendorStatusLoading, setvendorStatusLoading] = useState(true);
+  const [vendorStatusLoading, setVendorStatusLoading] = useState(true);
 
   const getProductStatusChoices = async () => {
     try {
@@ -27,7 +27,7 @@ function ChoicesProvider({ children }) {
     } catch (error) {
       throw error;
     } finally {
-      setvendorStatusLoading(false);
+      setVendorStatusLoading(false);
     }
   };
 

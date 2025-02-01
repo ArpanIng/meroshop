@@ -29,6 +29,6 @@ export const productValidationSchema = Yup.object({
   //     then: Yup.string().required("An image URL is required"),
   //   }),
   status: Yup.string().required("Status is required"),
-  category: Yup.string().required("Category is required"),
-  vendor: Yup.string().required("Vendor is required"),
+  categoryId: Yup.string().required("Category is required"),
+  vendorId: Yup.string().required("Vendor is required"),
 });

@@ -23,10 +23,7 @@ class ProductSerializer(DynamicFieldsModelSerializer):
         write_only=True,
         source="category",
     )
-    vendor = VendorSerializer(
-        read_only=True,
-        fields=["id", "name", "description", "email", "address", "phone_number"],
-    )
+    vendor = VendorSerializer(read_only=True, fields=["id", "name"])
     vendor_id = serializers.PrimaryKeyRelatedField(
         queryset=Vendor.objects.all(),
         write_only=True,

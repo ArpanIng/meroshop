@@ -1,6 +1,8 @@
+import logging
+
 from rest_framework import filters
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import IsAdminUser
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -9,8 +11,12 @@ from users.permissions import IsAdmin, IsAdminOrReadOnly
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
 
+logger = logging.getLogger(__name__)
+
 
 class CategoryListView(ListCreateAPIView):
+    """List all categories, or create a new category."""
+
     queryset = Category.objects.all()
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = CategorySerializer
@@ -19,6 +25,8 @@ class CategoryListView(ListCreateAPIView):
 
 
 class CategoryDetailView(RetrieveUpdateDestroyAPIView):
+    """Retrieve, update or delete a category."""
+
     queryset = Category.objects.all()
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = CategorySerializer
@@ -27,12 +35,16 @@ class CategoryDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class ProductListView(ListCreateAPIView):
+    """List all products, or create a new product."""
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    parser_classes = [FormParser, MultiPartParser]
 
 
+# TODO: cache the view
 class ProductStatusChoicesView(APIView):
-    """View to retrieve status choices of a Product model."""
+    """Retrieve status choices of a Product model."""
 
     def get(self, request, *args, **kwargs):
         status_choices = [
@@ -42,7 +54,10 @@ class ProductStatusChoicesView(APIView):
 
 
 class ProductDetailView(RetrieveUpdateDestroyAPIView):
+    """Retrieve, update or delete a product."""
+
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    parser_classes = [FormParser, MultiPartParser]
     lookup_field = "slug"
     lookup_url_kwarg = "product_slug"

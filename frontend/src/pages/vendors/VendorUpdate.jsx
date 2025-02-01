@@ -52,8 +52,10 @@ function VendorUpdate() {
   };
 
   const handleSubmit = async (values, actions) => {
+    // convert values to snake_case
+    const snakeCaseData = humps.decamelizeKeys(values);
     try {
-      const response = await updateVendor(vendorId, values);
+      const response = await updateVendor(vendorId, snakeCaseData);
       if (response.status === 200) {
         navigate("/admin/vendors");
       }

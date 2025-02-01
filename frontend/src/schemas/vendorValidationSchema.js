@@ -9,6 +9,7 @@ export const vendorValidationSchema = Yup.object({
     500,
     "Description cannot exceed 255 characters"
   ),
+  userId: Yup.string().required("User is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
   address: Yup.string()
     .max(100, "Address cannot exceed 100 characters")
