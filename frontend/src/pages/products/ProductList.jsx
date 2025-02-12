@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table } from "flowbite-react";
-import { Link } from "react-router-dom";
-import { HiPencil, HiPlus, HiSearch, HiTrash } from "react-icons/hi";
+import { Link, useSearchParams } from "react-router-dom";
+import { HiPencil, HiPlus, HiTrash } from "react-icons/hi";
 import Badge from "../../components/Badge";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
@@ -13,24 +13,36 @@ import { formatDate } from "../../utils/formatting";
 
 function ProductList() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  // URL Search Parameters
+  const [searchParams, setSearchParams] = useSearchParams();
+  // product table search
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
   const openProductDeleteModal = (productSlug) => {
     setSelectedProduct(productSlug);
     setOpenModal(true);
   };
 
-  const getProducts = async () => {
-    setLoading(true);
+  const getProducts = async (searchQuery) => {
     try {
-      const data = await fetchProducts();
+      const data = await fetchProducts(searchQuery);
       setProducts(data);
     } catch (error) {
       console.error("Error loading products data:", error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchParams(searchQuery ? { q: searchQuery } : {});
+    if (searchQuery.trim()) {
+      // fetch products based on user submitted query
+      getProducts(searchQuery);
     }
   };
 
@@ -45,7 +57,8 @@ function ProductList() {
   };
 
   useEffect(() => {
-    getProducts();
+    // fetch initial products with an empty query
+    getProducts(searchQuery);
   }, []);
 
   return (
@@ -59,23 +72,11 @@ function ProductList() {
               <>
                 <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
                   <div className="w-full md:w-1/2">
-                    <form className="flex items-center">
-                      <label htmlFor="simple-search" className="sr-only">
-                        Search
-                      </label>
-                      <div className="relative w-full">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <HiSearch className="w-5 h-5 text-gray-500" />
-                        </div>
-                        <input
-                          type="text"
-                          id="simple-search"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="Search"
-                          required=""
-                        />
-                      </div>
-                    </form>
+                    <DashboardTableSearchForm
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      handleSearchSubmit={handleSearchSubmit}
+                    />
                   </div>
                   <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
                     <Link
@@ -116,7 +117,7 @@ function ProductList() {
                               <img
                                 src={product.image}
                                 alt={`${product.name} Image`}
-                                class="w-auto h-8 mr-3"
+                                className="w-auto h-8 mr-3"
                               />
                               {product.name}
                             </Table.Cell>
@@ -170,12 +171,22 @@ function ProductList() {
                             </Table.Cell>
                           </Table.Row>
                         ))
+                      ) : products.length === 0 && searchQuery ? (
+                        <DashboardTableNoDataRow
+                          columns={11}
+                          message="No results found"
+                          message2="Try different keywords or remove search filters"
+                        />
                       ) : (
-                        <DashboardTableNoDataRow columns={11} />
+                        <DashboardTableNoDataRow
+                          columns={11}
+                          message="No products available."
+                        />
                       )}
                     </Table.Body>
                   </Table>
 
+                  {/* Product delete modal */}
                   <DeleteConfirmModal
                     isOpen={openModal}
                     onClose={() => setOpenModal(false)}

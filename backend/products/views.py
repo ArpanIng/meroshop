@@ -43,6 +43,8 @@ class ProductListView(ListCreateAPIView):
     queryset = Product.objects.all().select_related("category", "vendor")
     serializer_class = ProductSerializer
     parser_classes = [FormParser, MultiPartParser]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name"]
 
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:

@@ -1,8 +1,10 @@
 import api from "./endpoint";
 
-export const fetchVendors = async () => {
+export const fetchVendors = async (searchQuery) => {
   try {
-    const response = await api.get("/api/vendors/");
+    const response = await api.get("/api/vendors/", {
+      params: { q: searchQuery },
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching vendors:", error.message);

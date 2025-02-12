@@ -1,8 +1,10 @@
 import api from "./endpoint";
 
-export const fetchProducts = async () => {
+export const fetchProducts = async (searchQuery) => {
   try {
-    const response = await api.get("/api/products/");
+    const response = await api.get("/api/products/", {
+      params: { q: searchQuery },
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching products:", error.message);

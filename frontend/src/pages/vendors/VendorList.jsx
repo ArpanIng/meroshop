@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { HiPencil, HiPlus, HiSearch, HiTrash } from "react-icons/hi";
 import { Table } from "flowbite-react";
+import { HiPencil, HiPlus, HiTrash } from "react-icons/hi";
+import { Link, useSearchParams } from "react-router-dom";
 import Badge from "../../components/Badge";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
@@ -16,20 +16,33 @@ function VendorList() {
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  // URL Search Parameters
+  const [searchParams, setSearchParams] = useSearchParams();
+  // category table search
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
   const openVendorDeleteModal = (vendorId) => {
     setSelectedVendor(vendorId);
     setOpenModal(true);
   };
 
-  const getVendors = async () => {
+  const getVendors = async (searchQuery) => {
     try {
-      const data = await fetchVendors();
+      const data = await fetchVendors(searchQuery);
       setVendors(data);
     } catch (error) {
       console.error("Error loading vendor data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearchParams(searchQuery ? { q: searchQuery } : {});
+    if (searchQuery.trim()) {
+      // fetch vendors based on user submitted query
+      getVendors(searchQuery);
     }
   };
 
@@ -44,7 +57,8 @@ function VendorList() {
   };
 
   useEffect(() => {
-    getVendors();
+    // fetch initial vendors with an empty query
+    getVendors(searchQuery);
   }, []);
 
   return (
@@ -58,23 +72,11 @@ function VendorList() {
               <>
                 <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
                   <div className="w-full md:w-1/2">
-                    <form className="flex items-center">
-                      <label htmlFor="simple-search" className="sr-only">
-                        Search
-                      </label>
-                      <div className="relative w-full">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                          <HiSearch className="w-5 h-5 text-gray-500" />
-                        </div>
-                        <input
-                          type="text"
-                          id="simple-search"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                          placeholder="Search"
-                          required=""
-                        />
-                      </div>
-                    </form>
+                    <DashboardTableSearchForm
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      handleSearchSubmit={handleSearchSubmit}
+                    />
                   </div>
                   <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
                     <Link
@@ -151,12 +153,22 @@ function VendorList() {
                             </Table.Cell>
                           </Table.Row>
                         ))
+                      ) : vendors.length === 0 && searchQuery ? (
+                        <DashboardTableNoDataRow
+                          columns={9}
+                          message="No results found"
+                          message2="Try different keywords or remove search filters"
+                        />
                       ) : (
-                        <DashboardTableNoDataRow columns={9} />
+                        <DashboardTableNoDataRow
+                          columns={9}
+                          message="No vendors available."
+                        />
                       )}
                     </Table.Body>
                   </Table>
 
+                  {/* Vendor delete modal */}
                   <DeleteConfirmModal
                     isOpen={openModal}
                     onClose={() => setOpenModal(false)}

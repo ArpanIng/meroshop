@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import filters, status
 from rest_framework.generics import (
     ListAPIView,
     ListCreateAPIView,
@@ -23,6 +23,8 @@ class VendorListView(ListCreateAPIView):
 
     queryset = Vendor.objects.all().select_related("user")
     serializer_class = VendorSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name"]
 
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:

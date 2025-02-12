@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table } from "flowbite-react";
 import { HiPencil, HiPlus, HiTrash } from "react-icons/hi";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
@@ -15,10 +15,13 @@ import { formatDate } from "../../utils/formatting";
 
 function CategoryList() {
   const [categories, setCategories] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  // URL Search Parameters
+  const [searchParams, setSearchParams] = useSearchParams();
+  // category table search
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
   const openDeleteModal = (categorySlug) => {
     setSelectedCategory(categorySlug);
@@ -26,7 +29,6 @@ function CategoryList() {
   };
 
   const getCategories = async (searchQuery) => {
-    setLoading(true);
     try {
       const data = await fetchCategories(searchQuery);
       setCategories(data);
@@ -39,8 +41,11 @@ function CategoryList() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // fetch categories based on the current search
-    getCategories(searchQuery);
+    setSearchParams(searchQuery ? { q: searchQuery } : {});
+    if (searchQuery.trim()) {
+      // fetch categories based on user submitted query
+      getCategories(searchQuery);
+    }
   };
 
   const handleDelete = async (categorySlug) => {
@@ -56,7 +61,7 @@ function CategoryList() {
   };
 
   useEffect(() => {
-    // fetch initial category with an empty query
+    // fetch initial categories with an empty query
     getCategories(searchQuery);
   }, []);
 
@@ -138,12 +143,22 @@ function CategoryList() {
                             </Table.Cell>
                           </Table.Row>
                         ))
+                      ) : categories.length === 0 && searchQuery ? (
+                        <DashboardTableNoDataRow
+                          columns={5}
+                          message="No results found"
+                          message2="Try different keywords or remove search filters"
+                        />
                       ) : (
-                        <DashboardTableNoDataRow columns={5} />
+                        <DashboardTableNoDataRow
+                          columns={5}
+                          message="No categories available."
+                        />
                       )}
                     </Table.Body>
                   </Table>
 
+                  {/* Category delete modal */}
                   <DeleteConfirmModal
                     isOpen={openModal}
                     onClose={() => setOpenModal(false)}
