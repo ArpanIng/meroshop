@@ -8,6 +8,7 @@ from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from config.pagination import CustomLimitOffsetPagination
 from products.models import Product
 from products.serializers import ProductSerializer
 from users.models import UserRole
@@ -25,6 +26,7 @@ class VendorListView(ListCreateAPIView):
     serializer_class = VendorSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ["name"]
+    pagination_class = CustomLimitOffsetPagination
 
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:

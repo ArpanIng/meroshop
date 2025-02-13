@@ -7,6 +7,7 @@ import DashboardTableSearchForm from "../../components/DashboardTableSearchForm"
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import Loading from "../../components/Loading";
+import Pagination from "../../components/Pagination";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { deleteVendor, fetchVendors } from "../../services/api/vendorApi";
 import { formatDate } from "../../utils/formatting";
@@ -19,7 +20,15 @@ function VendorList() {
   // URL Search Parameters
   const [searchParams, setSearchParams] = useSearchParams();
   // category table search
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const search = searchParams.get("q");
+  const [searchQuery, setSearchQuery] = useState(search || "");
+  // vendor table pagination
+  const VENDORS_PER_PAGE = 50;
+  const page = searchParams.get("page");
+  const currentPage = page ? parseInt(page, 10) : 1;
+  // offset based on the current page (0 for first page)
+  const offset = VENDORS_PER_PAGE * (currentPage - 1);
+  const [vendorsCount, setVendorsCount] = useState(0);
 
   const openVendorDeleteModal = (vendorId) => {
     setSelectedVendor(vendorId);
@@ -28,8 +37,9 @@ function VendorList() {
 
   const getVendors = async (searchQuery) => {
     try {
-      const data = await fetchVendors(searchQuery);
-      setVendors(data);
+      const data = await fetchVendors(searchQuery, VENDORS_PER_PAGE, offset);
+      setVendors(data.results);
+      setVendorsCount(data.count);
     } catch (error) {
       console.error("Error loading vendor data:", error);
     } finally {
@@ -59,7 +69,7 @@ function VendorList() {
   useEffect(() => {
     // fetch initial vendors with an empty query
     getVendors(searchQuery);
-  }, []);
+  }, [currentPage]);
 
   return (
     <DashboardMainLayout>
@@ -91,6 +101,9 @@ function VendorList() {
                 </div>
                 <div className="overflow-x-auto">
                   <Table>
+                    <caption class="p-5 text-sm font-normal text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+                      {vendorsCount} {vendorsCount === 1 ? "result" : "results"}
+                    </caption>
                     <Table.Head>
                       <Table.HeadCell>Vendor name</Table.HeadCell>
                       <Table.HeadCell>User</Table.HeadCell>
@@ -178,6 +191,15 @@ function VendorList() {
                 </div>
               </>
             )}
+
+            {/* Table pagination */}
+            <Pagination
+              currentPage={currentPage}
+              count={vendorsCount}
+              limit={VENDORS_PER_PAGE}
+              offset={offset}
+              pathName="/admin/vendors"
+            />
           </div>
         </div>
       </section>

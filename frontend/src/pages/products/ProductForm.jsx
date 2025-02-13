@@ -54,7 +54,7 @@ function ProductForm({ initialValues, onSubmit, isEditMode = false }) {
     setLoading(true);
     try {
       const data = await fetchVendors();
-      setVendors(data);
+      setVendors(data.results);
     } catch (error) {
       throw error;
     } finally {

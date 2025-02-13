@@ -7,6 +7,7 @@ import DashboardTableSearchForm from "../../components/DashboardTableSearchForm"
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import Loading from "../../components/Loading";
+import Pagination from "../../components/Pagination";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { deleteProduct, fetchProducts } from "../../services/api/productApi";
 import { formatDate } from "../../utils/formatting";
@@ -19,7 +20,15 @@ function ProductList() {
   // URL Search Parameters
   const [searchParams, setSearchParams] = useSearchParams();
   // product table search
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const search = searchParams.get("q");
+  const [searchQuery, setSearchQuery] = useState(search || "");
+  // product table pagination
+  const PRODUCTS_PER_PAGE = 50;
+  const page = searchParams.get("page");
+  const currentPage = page ? parseInt(page, 10) : 1;
+  // offset based on the current page (0 for first page)
+  const offset = PRODUCTS_PER_PAGE * (currentPage - 1);
+  const [productsCount, setProductsCount] = useState(0);
 
   const openProductDeleteModal = (productSlug) => {
     setSelectedProduct(productSlug);
@@ -28,8 +37,9 @@ function ProductList() {
 
   const getProducts = async (searchQuery) => {
     try {
-      const data = await fetchProducts(searchQuery);
-      setProducts(data);
+      const data = await fetchProducts(searchQuery, PRODUCTS_PER_PAGE, offset);
+      setProducts(data.results);
+      setProductsCount(data.count);
     } catch (error) {
       console.error("Error loading products data:", error.message);
     } finally {
@@ -59,7 +69,7 @@ function ProductList() {
   useEffect(() => {
     // fetch initial products with an empty query
     getProducts(searchQuery);
-  }, []);
+  }, [currentPage]);
 
   return (
     <DashboardMainLayout>
@@ -91,6 +101,10 @@ function ProductList() {
                 </div>
                 <div className="overflow-x-auto">
                   <Table>
+                    <caption class="p-5 text-sm font-normal text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
+                      {productsCount}{" "}
+                      {productsCount === 1 ? "result" : "results"}
+                    </caption>
                     <Table.Head>
                       <Table.HeadCell>Product</Table.HeadCell>
                       <Table.HeadCell>Slug</Table.HeadCell>
@@ -195,6 +209,14 @@ function ProductList() {
                 </div>
               </>
             )}
+            {/* Table pagination */}
+            <Pagination
+              currentPage={currentPage}
+              count={productsCount}
+              limit={PRODUCTS_PER_PAGE}
+              offset={offset}
+              pathName="/admin/products"
+            />
           </div>
         </div>
       </section>

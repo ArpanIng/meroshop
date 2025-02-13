@@ -151,6 +151,9 @@ REST_FRAMEWORK = {
     # default project search parameter
     # By default, the drf search parameter is named 'search'
     "SEARCH_PARAM": "q",
+    # default project ordering parameter
+    # By default, the drf ordering parameter is named 'ordering'
+    "ORDERING_PARAM": "sort",
 }
 
 # JWT configuration

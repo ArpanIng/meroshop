@@ -7,6 +7,7 @@ from rest_framework.permissions import SAFE_METHODS, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from config.pagination import CustomLimitOffsetPagination
 from users.permissions import IsAdmin, IsAdminOrReadOnly
 from vendors.permissions import IsVendor
 
@@ -42,6 +43,7 @@ class ProductListView(ListCreateAPIView):
 
     queryset = Product.objects.all().select_related("category", "vendor")
     serializer_class = ProductSerializer
+    pagination_class = CustomLimitOffsetPagination
     parser_classes = [FormParser, MultiPartParser]
     filter_backends = [filters.SearchFilter]
     search_fields = ["name"]

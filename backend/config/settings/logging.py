@@ -39,6 +39,10 @@ LOGGING = {
             "level": "INFO",
             "handlers": ["file"],
         },
+        "config": {
+            "level": "INFO",
+            "handlers": ["file"],
+        },
         "vendors": {
             "level": "INFO",
             "handlers": ["file"],
