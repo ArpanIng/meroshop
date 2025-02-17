@@ -102,14 +102,14 @@ function Navbar() {
                 <Button
                   color="blue"
                   type="button"
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/auth/login")}
                 >
                   Login
                 </Button>
                 <Button
                   color="blue"
                   type="button"
-                  onClick={() => navigate("/register")}
+                  onClick={() => navigate("/auth/register")}
                 >
                   Register
                 </Button>

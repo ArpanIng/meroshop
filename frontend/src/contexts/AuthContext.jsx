@@ -97,7 +97,7 @@ function AuthProvider({ children }) {
   const handleLogout = () => {
     localStorage.clear();
     setIsAuthenticated(false);
-    navigate("/login");
+    navigate("/auth/login");
   };
 
   return (
