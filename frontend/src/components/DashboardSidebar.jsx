@@ -2,6 +2,7 @@ import React from "react";
 import {
   HiArchive,
   HiOfficeBuilding,
+  HiStar,
   HiUserGroup,
   HiViewGridAdd,
 } from "react-icons/hi";
@@ -97,6 +98,15 @@ function DashboardSidebar() {
             >
               <HiArchive className="w-6 h-6 text-gray-500" />
               <span className="ml-3">Products</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/admin/reviews"
+              className={({ isActive }) => navLinkClass(isActive)}
+            >
+              <HiStar className="w-6 h-6 text-gray-500" />
+              <span className="ml-3">Reviews</span>
             </NavLink>
           </li>
           <li>

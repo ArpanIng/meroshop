@@ -11,3 +11,15 @@ class IsProductVendorOwnerOrReadOnly(BasePermission):
 
         # write permissions are only allowed to the vendor user of the product.
         return obj.vendor.user == request.user
+
+
+class ReviewOwnerOrReadOnly(BasePermission):
+    """Object-level permission to only allow review owner of an object to edit it."""
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request
+        if request.method in SAFE_METHODS:
+            return True
+
+        # write permissions are only allowed to the owner of the review.
+        return obj.user == request.user

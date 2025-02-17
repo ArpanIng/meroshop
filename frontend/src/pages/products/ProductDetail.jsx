@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Button, Rating } from "flowbite-react";
+import { Button } from "flowbite-react";
 import { useParams } from "react-router-dom";
 import { HiOutlineHeart, HiOutlineShoppingCart } from "react-icons/hi";
+import ProductReview from "./ProductReview";
+import StarRating from "../../components/StarRating";
 import Loading from "../../components/Loading";
-import { fetchProduct } from "../../services/api/productApi";
 import { useCart } from "../../contexts/CartContext";
+import { fetchProduct } from "../../services/api/productApi";
 
 function ProductDetail() {
   const [product, setProduct] = useState({});
@@ -33,6 +35,7 @@ function ProductDetail() {
 
   return (
     <section className="py-8 bg-white md:py-16 dark:bg-gray-900 antialiased">
+      {/* product detail info */}
       <div className="max-w-screen-xl px-4 mx-auto 2xl:px-0">
         <div className="lg:grid lg:grid-cols-2 lg:gap-8 xl:gap-16">
           <div className="shrink-0 max-w-md lg:max-w-lg mx-auto">
@@ -48,16 +51,16 @@ function ProductDetail() {
               {product.name}
             </h1>
             <div className="mt-4 sm:items-center sm:gap-4 sm:flex">
-              {product.has_discount ? (
+              {product.hasDiscount ? (
                 <>
                   <p className="text-2xl font-extrabold text-gray-900 sm:text-3xl dark:text-white">
-                    Rs. {product.discount_price}
+                    Rs. {product.discountPrice}
                   </p>
                   <p className="text-2xl font-thin text-gray-600 line-through sm:text-3xl dark:text-white">
                     Rs. {product.price}
                   </p>
                   <span className="text-sm">
-                    -{product.discount_percentage}%
+                    -{product.discountPercentage}%
                   </span>
                 </>
               ) : (
@@ -67,23 +70,11 @@ function ProductDetail() {
               )}
 
               <div className="flex items-center gap-2 mt-2 sm:mt-0">
-                <Rating>
-                  <Rating.Star className="text-yellow-300" />
-                  <Rating.Star className="text-yellow-300" />
-                  <Rating.Star className="text-yellow-300" />
-                  <Rating.Star className="text-yellow-300" />
-                  <Rating.Star className="text-yellow-300" />
-                  <p className="ml-2 text-sm font-bold text-gray-900 dark:text-white">
-                    4.95
-                  </p>
-                  <span className="mx-1.5 h-1 w-1 rounded-full bg-gray-500 dark:bg-gray-400" />
-                  <a
-                    href="#"
-                    className="text-sm font-medium text-gray-900 underline hover:no-underline dark:text-white"
-                  >
-                    73 reviews
-                  </a>
-                </Rating>
+                <StarRating
+                  ratingValue={product.rating}
+                  ratingValueDisplay={true}
+                  reviewsCount={product.totalReviews}
+                />
               </div>
             </div>
 
@@ -123,6 +114,11 @@ function ProductDetail() {
           </div>
         </div>
       </div>
+
+      <hr className="my-6 md:my-8 border-gray-200 dark:border-gray-800" />
+
+      {/* product review */}
+      <ProductReview product={product} />
     </section>
   );
 }

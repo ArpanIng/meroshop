@@ -45,10 +45,58 @@ class UserRegistrationView(generics.CreateAPIView):
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
-    """View to display profile of the request user."""
+    """Display profile of the request user."""
 
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = UserSerializer
 
     def get_object(self):
         return self.request.user
+
+
+class UserReviewListView(generics.ListAPIView):
+    """
+    List all product reviews of the request authenticated user.
+    If `user_id` is passed, list all user's product reviews of that ID.
+    """
+
+    queryset = Review.objects.all().select_related("user")
+    serializer_class = ReviewSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["rating"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        user_id = self.kwargs.get("user_id")
+
+        if user_id:
+            queryset = queryset.filter(user_id=user_id)
+        else:
+            queryset = queryset.filter(user=user)
+        # Apply filters manually for DjangoFilterBackend
+        return self.filter_queryset(queryset)
+
+    def get_permissions(self):
+        self.permission_classes = [permissions.IsAuthenticated]
+
+        if "user_id" in self.kwargs:
+            self.permission_classes = [IsAdmin]
+        return super().get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        reviews = self.get_queryset()
+        serializer = self.get_serializer(
+            reviews,
+            many=True,
+            fields=[
+                "id",
+                "product",
+                "rating",
+                "comment",
+                "is_active",
+                "created_at",
+                "updated_at",
+            ],
+        )
+        return Response(serializer.data)

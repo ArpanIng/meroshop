@@ -12,5 +12,8 @@ urlpatterns = [
     path("auth/register/", views.UserRegistrationView.as_view()),
     path("users/", views.UserListView.as_view()),
     path("users/<int:pk>/", views.UserDetailView.as_view()),
+    # path("users/<int:user_id>/reviews/", views.UserReviewListByIdView.as_view()),
+    path("users/<int:user_id>/reviews/", views.UserReviewListView.as_view()),
     path("users/me/", views.ProfileView.as_view()),
+    path("users/me/reviews/", views.UserReviewListView.as_view()),
 ]

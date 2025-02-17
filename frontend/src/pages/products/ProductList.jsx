@@ -8,6 +8,7 @@ import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import Loading from "../../components/Loading";
 import Pagination from "../../components/Pagination";
+import StarRating from "../../components/StarRating";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { deleteProduct, fetchProducts } from "../../services/api/productApi";
 import { formatDate } from "../../utils/formatting";
@@ -140,6 +141,9 @@ function ProductList() {
                               <Badge color="blue">
                                 {product.category.name}
                               </Badge>
+                            </Table.Cell>
+                            <Table.Cell>
+                              <StarRating ratingValue={product.rating} />
                             </Table.Cell>
                             <Table.Cell>रु{product.price}</Table.Cell>
                             <Table.Cell>रु{product.discountPrice}</Table.Cell>

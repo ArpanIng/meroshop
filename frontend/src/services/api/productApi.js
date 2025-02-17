@@ -69,3 +69,15 @@ export const fetchProductStatusChoices = async () => {
     throw error;
   }
 };
+
+export const fetchProductReviews = async (productSlug, rating) => {
+  try {
+    const response = await api.get(`/api/products/${productSlug}/reviews/`, {
+      params: { rating: rating },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching product reviews:", error);
+    throw error;
+  }
+};

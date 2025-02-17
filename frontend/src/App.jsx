@@ -12,6 +12,7 @@ import ProfileUpdate from "./pages/accounts/ProfileUpdate";
 import Settings from "./pages/accounts/Settings";
 import UserForm from "./pages/accounts/UserForm";
 import UserList from "./pages/accounts/UserList";
+import UserReviewList from "./pages/accounts/UserReviewList";
 import ChangePassword from "./pages/accounts/auth/ChangePassword";
 import Login from "./pages/accounts/auth/Login";
 import Register from "./pages/accounts/auth/Register";
@@ -25,6 +26,7 @@ import ProductCreate from "./pages/products/ProductCreate";
 import ProductDetail from "./pages/products/ProductDetail";
 import ProductUpdate from "./pages/products/ProductUpdate";
 import ProductList from "./pages/products/ProductList";
+import ReviewList from "./pages/products/ReviewList";
 import VendorCreate from "./pages/vendors/VendorCreate";
 import VendorList from "./pages/vendors/VendorList";
 import VendorUpdate from "./pages/vendors/VendorUpdate";
@@ -79,6 +81,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/users/reviews/" element={<UserReviewList />} />
             <Route path="/cart" element={<Cart />} />
             <Route
               path="/settings"
@@ -132,6 +135,10 @@ function App() {
                   </ChoicesProvider>
                 }
               />
+            </Route>
+            {/* review routes */}
+            <Route path="reviews">
+              <Route index element={<ReviewList />} />
             </Route>
             {/* vendor routes */}
             <Route path="vendors">
