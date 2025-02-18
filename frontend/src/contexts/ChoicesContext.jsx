@@ -15,7 +15,7 @@ function ChoicesProvider({ children }) {
       const data = await fetchProductStatusChoices();
       setProductStatusChoices(data.choices);
     } catch (error) {
-      throw error;
+      console.error("Error fetching product status choices:", error);
     } finally {
       setProductStatusLoading(false);
     }
@@ -25,7 +25,7 @@ function ChoicesProvider({ children }) {
       const data = await fetchVendorStatusChoices();
       setVendorStatusChoices(data.choices);
     } catch (error) {
-      throw error;
+      console.error("Error fetching vendor status choices:", error);
     } finally {
       setVendorStatusLoading(false);
     }

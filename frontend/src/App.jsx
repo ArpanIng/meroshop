@@ -19,17 +19,11 @@ import Register from "./pages/accounts/auth/Register";
 import Cart from "./pages/carts/Cart";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import VendorDashboard from "./pages/dashboard/VendorDashboard";
-import CategoryCreate from "./pages/products/CategoryCreate";
 import CategoryList from "./pages/products/CategoryList";
-import CategoryUpdate from "./pages/products/CategoryUpdate";
-import ProductCreate from "./pages/products/ProductCreate";
 import ProductDetail from "./pages/products/ProductDetail";
-import ProductUpdate from "./pages/products/ProductUpdate";
 import ProductList from "./pages/products/ProductList";
 import ReviewList from "./pages/products/ReviewList";
-import VendorCreate from "./pages/vendors/VendorCreate";
 import VendorList from "./pages/vendors/VendorList";
-import VendorUpdate from "./pages/vendors/VendorUpdate";
 import CartProvider from "./contexts/CartContext";
 import ChoicesProvider from "./contexts/ChoicesContext";
 
@@ -115,25 +109,14 @@ function App() {
             {/* category routes */}
             <Route path="categories">
               <Route index element={<CategoryList />} />
-              <Route path="add" element={<CategoryCreate />} />
-              <Route path=":categorySlug/edit" element={<CategoryUpdate />} />
             </Route>
             {/* product routes */}
             <Route path="products">
-              <Route index element={<ProductList />} />
               <Route
-                path="add"
+                index
                 element={
                   <ChoicesProvider>
-                    <ProductCreate />
-                  </ChoicesProvider>
-                }
-              />
-              <Route
-                path=":productSlug/edit"
-                element={
-                  <ChoicesProvider>
-                    <ProductUpdate />
+                    <ProductList />
                   </ChoicesProvider>
                 }
               />
@@ -144,20 +127,11 @@ function App() {
             </Route>
             {/* vendor routes */}
             <Route path="vendors">
-              <Route index element={<VendorList />} />
               <Route
-                path="add"
+                index
                 element={
                   <ChoicesProvider>
-                    <VendorCreate />
-                  </ChoicesProvider>
-                }
-              />
-              <Route
-                path=":vendorId/edit"
-                element={
-                  <ChoicesProvider>
-                    <VendorUpdate />
+                    <VendorList />
                   </ChoicesProvider>
                 }
               />

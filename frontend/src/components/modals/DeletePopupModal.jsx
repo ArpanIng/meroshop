@@ -3,7 +3,7 @@ import { Button, Modal } from "flowbite-react";
 import PropTypes from "prop-types";
 import { HiOutlineTrash } from "react-icons/hi";
 
-function PopupModal({
+function DeletePopupModal({
   openModal,
   setOpenModal,
   onConfirm,
@@ -62,7 +62,7 @@ function PopupModal({
   );
 }
 
-PopupModal.propTypes = {
+DeletePopupModal.propTypes = {
   openModal: PropTypes.bool.isRequired,
   setOpenModal: PropTypes.func.isRequired,
   onConfirm: PropTypes.func.isRequired,
@@ -70,4 +70,4 @@ PopupModal.propTypes = {
   modalID: PropTypes.string.isRequired,
 };
 
-export default PopupModal;
+export default DeletePopupModal;

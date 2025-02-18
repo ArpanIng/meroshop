@@ -13,7 +13,7 @@ import DashboardTableSearchForm from "../../components/DashboardTableSearchForm"
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import Loading from "../../components/Loading";
 import StarRating from "../../components/StarRating";
-import PopupModal from "../../components/modals/PopupModal";
+import DeletePopupModal from "../../components/modals/DeletePopupModal";
 import ReviewModal from "../../components/modals/ReviewModal";
 import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { fetchProducts } from "../../services/api/productApi";
@@ -50,11 +50,12 @@ function ReviewList() {
       const data = await fetchReviews();
       setReviews(data);
     } catch (error) {
-      console.error("Error loading reviews data:", error);
+      console.error("Error fetching reviews:", error);
     } finally {
       setLoading(false);
     }
   };
+  // console.error("Error loading reviews data:", error);
 
   const getUsers = async () => {
     try {
@@ -106,7 +107,7 @@ function ReviewList() {
       await createReview(formData);
       getReviews();
     } catch (error) {
-      console.error("Error ");
+      console.error("Error creating review:", error);
     }
   };
 
@@ -246,7 +247,7 @@ function ReviewList() {
       />
 
       {/* review delete modal */}
-      <PopupModal
+      <DeletePopupModal
         openModal={openDeleteModal}
         setOpenModal={setOpenDeleteModal}
         onConfirm={() => handleReviewDelete(selectedReview)}

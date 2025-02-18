@@ -3,7 +3,7 @@ import { Button } from "flowbite-react";
 import { HiCalendar, HiTrash, HiPencilAlt } from "react-icons/hi";
 import { Link, useSearchParams } from "react-router-dom";
 import StarRating from "../../components/StarRating";
-import PopupModal from "../../components/modals/PopupModal";
+import DeletePopupModal from "../../components/modals/DeletePopupModal";
 import { fetchUserReviews } from "../../services/api/userApi";
 import { formatDateOnly } from "../../utils/formatting";
 
@@ -129,7 +129,7 @@ function UserReviewList() {
       </section>
 
       {/* review delete modal */}
-      <PopupModal
+      <DeletePopupModal
         openModal={openModal}
         setOpenModal={setOpenModal}
         confirmationText="Are you sure you want to delete this review?"
