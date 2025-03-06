@@ -1,13 +1,17 @@
+import logging
 from decimal import Decimal
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import CustomUser
-from users.serializers import DynamicFieldsModelSerializer
+from users.serializers import DynamicFieldsModelSerializer, UserSerializer
 from vendors.models import Vendor
 from vendors.serializers import VendorSerializer
 
 from .models import Category, Product, Review
+
+logger = logging.getLogger(__name__)
 
 
 class CategorySerializer(DynamicFieldsModelSerializer):
@@ -30,9 +34,9 @@ class ProductSerializer(DynamicFieldsModelSerializer):
         write_only=True,
         source="vendor",
     )
-    rating = serializers.FloatField(read_only=True, source="avg")
-    total_reviews = serializers.IntegerField(read_only=True)
-    total_ratings = serializers.IntegerField(read_only=True, source="sum")
+    rating = serializers.FloatField(read_only=True, source="avg_rating")
+    total_reviews = serializers.IntegerField(read_only=True, source="reviews_count")
+    total_ratings = serializers.IntegerField(read_only=True, source="sum_rating")
     has_discount = serializers.SerializerMethodField()
     discount_percentage = serializers.SerializerMethodField()
 
@@ -62,6 +66,10 @@ class ProductSerializer(DynamicFieldsModelSerializer):
         ]
         read_only_fields = ["slug"]
 
+    @classmethod
+    def get_nested_fields(cls):
+        return ["id", "name", "slug"]
+
     def validate(self, attrs):
         """
         Check that product discount price is less than the product original price.
@@ -90,15 +98,44 @@ class ProductSerializer(DynamicFieldsModelSerializer):
         if self.fields is None or "status" in self.fields:
             # return the label of the choice instead of value.
             data["status"] = instance.get_status_display()
+
+        # Serializer Context
+        request = self.context.get("request")
+        user = request.user
+        # return serializer fields based on user role
+        if user.is_anonymous or (user.is_authenticated and not user.is_admin):
+            if "status" in data:
+                del data["status"]
         return data
 
 
+class UserReviewSerializer(serializers.ModelSerializer):
+    """Review serializer for regular users."""
+
+    class Meta:
+        model = Review
+        fields = ["id", "product", "rating", "comment", "created_at", "updated_at"]
+
+    def validate(self, attrs):
+        user = self.context.get("request").user
+        product = attrs["product"]
+
+        if Review.objects.filter(product=product, user=user).exists():
+            raise serializers.ValidationError(
+                "Review with this Product and User already exists.",
+            )
+        logger.info(f"review user: {user}")
+        return attrs
+
+
 class ReviewSerializer(DynamicFieldsModelSerializer):
-    product = serializers.ReadOnlyField(source="product.name")
+    product = ProductSerializer(
+        read_only=True, fields=ProductSerializer.get_nested_fields()
+    )
     product_id = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(), write_only=True, source="product"
     )
-    user = serializers.ReadOnlyField(source="user.get_full_name")
+    user = UserSerializer(read_only=True, fields=UserSerializer.get_nested_fields())
     user_id = serializers.PrimaryKeyRelatedField(
         queryset=CustomUser.objects.all(), write_only=True, source="user"
     )
@@ -117,3 +154,20 @@ class ReviewSerializer(DynamicFieldsModelSerializer):
             "created_at",
             "updated_at",
         ]
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=["product", "user"],
+                message="Review with this Product and User already exists.",
+            )
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        user = request.user
+        if user.is_anonymous or (user.is_authenticated and not user.is_admin):
+            if "is_active" in data:
+                del data["is_active"]
+
+        return data

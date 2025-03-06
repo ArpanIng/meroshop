@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
@@ -86,7 +88,27 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()
 
     def __str__(self):
-        return self.username
+        return self.email
+
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
+    @property
+    def is_admin(self):
+        return self.role == UserRole.ADMINISTRATOR
+
+    @property
+    def is_vendor(self):
+        return self.role == UserRole.VENDOR
+
+    @property
+    def is_customer(self):
+        return self.role == UserRole.CUSTOMER
+
+
+def get_upload_path(instance, filename):
+    return os.path.join("profiles", "avatars", str(instance.pk), filename)
 
 
 class Profile(models.Model):
@@ -97,8 +119,8 @@ class Profile(models.Model):
     state = models.CharField(max_length=100, blank=True, default="")
     address = models.CharField(max_length=100, blank=True, default="")
     phone_number = models.CharField(max_length=15, blank=True, default="")
-    profile_picture = models.ImageField(
-        upload_to="profiles/", default="default_user.jpg", blank=True, null=True
+    avatar = models.ImageField(
+        upload_to=get_upload_path, default="default_user.jpg", blank=True, null=True
     )
 
     def __str__(self):

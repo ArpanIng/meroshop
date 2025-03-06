@@ -8,6 +8,8 @@ from django.utils.text import slugify
 
 from vendors.models import Vendor
 
+from .managers import ProductManager
+
 
 class Category(models.Model):
     name = models.CharField(max_length=150, unique=True)
@@ -33,18 +35,13 @@ def validate_positive_decimal(value):
         raise ValidationError("The price must be positive.")
 
 
-def validate_min_price(value):
-    if value < 10:
-        raise ValidationError()
-
-
 class Product(models.Model):
     """Model representing a product."""
 
     class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
         ACTIVE = "ACTIVE", "Active"
         INACTIVE = "INACTIVE", "Inactive"
-        OUT_OF_STOCK = "OUT_OF_STOCK", "Out of Stock"
         DISCONTINUED = "DISCONTINUED", "Discontinued"
 
     name = models.CharField(max_length=250)
@@ -74,7 +71,7 @@ class Product(models.Model):
     status = models.CharField(
         max_length=12,
         choices=Status.choices,
-        default=Status.ACTIVE,
+        default=Status.DRAFT,
         help_text="Select the status of the product.",
     )
     category = models.ForeignKey(
@@ -90,6 +87,8 @@ class Product(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ProductManager()
 
     class Meta:
         indexes = [
@@ -107,19 +106,21 @@ class Product(models.Model):
                     "discount_price": "Discount price cannot be greater than or equal to the original price.",
                 }
             )
+        # Ensure the vendor's status is ACTIVE before allowing the product creation
+        if self.vendor.status not in [Vendor.Status.ACTIVE]:
+            raise ValidationError(
+                {"vendor": "Product can only be created for active vendors."}
+            )
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
-        # set the product status based on the stock
-        if self.stock == 0:
-            self.status = Product.Status.OUT_OF_STOCK
         self.full_clean()
         super().save(*args, **kwargs)
 
     @property
     def in_stock(self) -> bool:
-        return self.stock > 0
+        return self.status == Product.Status.ACTIVE and self.stock > 0
 
     @property
     def has_discount(self) -> bool:

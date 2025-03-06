@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -6,11 +8,32 @@ from users.serializers import DynamicFieldsModelSerializer, UserSerializer
 
 from .models import Vendor
 
+logger = logging.getLogger(__name__)
+
+
+class UserVendorSerializer(serializers.ModelSerializer):
+    """Vendor serializer for regular user."""
+
+    class Meta:
+        model = Vendor
+        fields = [
+            "id",
+            "name",
+            "description",
+            "email",
+            "address",
+            "phone_number",
+            "created_at",
+            "updated_at",
+        ]
+
 
 class VendorSerializer(DynamicFieldsModelSerializer):
+    """Vendor serializer for admin user."""
+
     user = UserSerializer(
         read_only=True,
-        fields=["id", "first_name", "last_name", "username", "email"],
+        fields=["id", "first_name", "last_name", "email"],
     )
     user_id = serializers.PrimaryKeyRelatedField(
         queryset=CustomUser.objects.all(),
@@ -50,7 +73,9 @@ class VendorSerializer(DynamicFieldsModelSerializer):
         data = super().to_representation(instance)
         # self.fields is None - serializer includes all fields by default
         # only display the field if 'fields' is None or is explicitly included in 'fields' when initializing the serializer
-        if self.fields is None or "status" in self.fields:
-            # return the label of the choice instead of value.
-            data["status"] = instance.get_status_display()
+        # if self.fields is None or "status" in self.fields:
+        #     # return the label of the choice instead of value.
+        #     data["status"] = instance.get_status_display()
+
+        data["status"] = instance.get_status_display()
         return data

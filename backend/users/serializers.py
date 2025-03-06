@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import Profile, UserRole
+from .models import Profile
 
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
@@ -13,19 +15,29 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
-        fields = kwargs.pop("fields", None)
+        dynamic_fields = kwargs.pop("fields", None)
 
         # Instantiate the superclass normally
         super().__init__(*args, **kwargs)
 
-        if fields is not None:
+        if dynamic_fields is not None:
             # Drop any fields that are not specified in the `fields` argument.
-            # fields - refers to a keyword argument passed when initializing the serializer
-            allowed = set(fields)
+            # dynamic_fields - refers to a keyword argument passed when initializing the serializer
+            allowed = set(dynamic_fields)
             # self.fields - represents all the fields defined in the serializer
             existing = set(self.fields)
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        try:
+            data = super().validate(attrs)
+        except AuthenticationFailed:
+            raise AuthenticationFailed("Invalid email or password. Please try again.")
+
+        return data
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -66,30 +78,45 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["city", "state", "address", "phone_number", "profile_picture"]
+        fields = ["city", "state", "address", "phone_number", "avatar"]
 
 
-class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
+class UserSerializer(DynamicFieldsModelSerializer):
+    # profile = ProfileSerializer()
+    city = serializers.CharField(source="profile.city")
+    state = serializers.CharField(source="profile.state")
+    address = serializers.CharField(source="profile.address")
+    phone_number = serializers.CharField(source="profile.phone_number")
+    avatar = serializers.CharField(source="profile.avatar")
 
     class Meta:
         model = get_user_model()
-        fields = [
-            "id",
-            "first_name",
-            "last_name",
-            "username",
-            "email",
-            "profile",
-            "role",
-            "last_login",
-            "is_active",
-            "date_joined",
-        ]
+        fields = "__all__"
+        # fields = [
+        #     "id",
+        #     "first_name",
+        #     "last_name",
+        #     "username",
+        #     "email",
+        #     "city",
+        #     "state",
+        #     "address",
+        #     "phone_number",
+        #     "avatar",
+        #     # "profile",
+        #     "role",
+        #     "last_login",
+        #     "is_active",
+        #     "date_joined",
+        # ]
         extra_kwargs = {
             "first_name": {"required": True},
             "last_name": {"required": True},
         }
+
+    @classmethod
+    def get_nested_fields(cls):
+        return ["id", "first_name", "last_name"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

@@ -13,7 +13,7 @@ class IsProductVendorOwnerOrReadOnly(BasePermission):
         return obj.vendor.user == request.user
 
 
-class ReviewOwnerOrReadOnly(BasePermission):
+class IsReviewOwnerOrReadOnly(BasePermission):
     """Object-level permission to only allow review owner of an object to edit it."""
 
     def has_object_permission(self, request, view, obj):

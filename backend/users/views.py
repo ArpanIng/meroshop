@@ -1,35 +1,55 @@
+import logging
+
 from django.contrib.auth import get_user_model
-from rest_framework import generics, permissions, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import permissions, status
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from config.pagination import CustomLimitOffsetPagination
+from products.models import Review
+from products.serializers import ReviewSerializer
 
 from .permissions import IsAdmin
-from .serializers import UserRegistrationSerializer, UserSerializer
+from .serializers import (
+    CustomTokenObtainPairSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
+)
+
+logger = logging.getLogger(__name__)
 
 
-class UserListView(generics.ListAPIView):
-    """View to list all users in the system."""
+class UserListView(ListAPIView):
+    """List all users in the system."""
 
+    queryset = get_user_model().objects.all().select_related("profile")
+    permission_classes = [IsAdmin]
+    serializer_class = UserSerializer
+    filterset_fields = ["role"]
+
+
+class UserDetailView(RetrieveUpdateDestroyAPIView):
+    """Retrive, update, or delete a user."""
+
+    queryset = get_user_model().objects.all().select_related("profile")
     permission_classes = [IsAdmin]
     serializer_class = UserSerializer
 
-    def get_queryset(self):
-        queryset = get_user_model().objects.all()
-        role = self.request.query_params.get("role")
-        if role is not None:
-            queryset = queryset.filter(roll__exact=role)
-        return queryset
+
+class LoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 
-class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """View to retrive, update, or delete a user."""
-
-    queryset = get_user_model().objects.all()
-    permission_classes = [IsAdmin]
-    serializer_class = UserSerializer
-
-
-class UserRegistrationView(generics.CreateAPIView):
-    """View to register a new user."""
+class UserRegistrationView(APIView):
+    """Register a new user."""
 
     permission_classes = [permissions.AllowAny]
 
@@ -44,7 +64,7 @@ class UserRegistrationView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProfileView(generics.RetrieveUpdateAPIView):
+class ProfileView(RetrieveUpdateAPIView):
     """Display profile of the request user."""
 
     permission_classes = [permissions.IsAuthenticated]
@@ -54,49 +74,60 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class UserReviewListView(generics.ListAPIView):
+class UserReviewListView(ListAPIView):
     """
     List all product reviews of the request authenticated user.
-    If `user_id` is passed, list all user's product reviews of that ID.
+    If `user_id` is passed, list all user's product reviews of the ID.
     """
 
-    queryset = Review.objects.all().select_related("user")
     serializer_class = ReviewSerializer
+    pagination_class = CustomLimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["rating"]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        user = self.request.user
+        queryset = Review.objects.select_related("product").only(
+            "id",
+            "product__id",
+            "product__name",
+            "product__slug",
+            "rating",
+            "comment",
+            "created_at",
+            "updated_at",
+        )
         user_id = self.kwargs.get("user_id")
 
         if user_id:
-            queryset = queryset.filter(user_id=user_id)
+            queryset = queryset.filter(user=user_id)
         else:
-            queryset = queryset.filter(user=user)
-        # Apply filters manually for DjangoFilterBackend
-        return self.filter_queryset(queryset)
+            queryset = queryset.filter(user=self.request.user)
+
+        return queryset
 
     def get_permissions(self):
-        self.permission_classes = [permissions.IsAuthenticated]
-
         if "user_id" in self.kwargs:
-            self.permission_classes = [IsAdmin]
-        return super().get_permissions()
+            permission_classes = [IsAdmin]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
     def list(self, request, *args, **kwargs):
-        reviews = self.get_queryset()
-        serializer = self.get_serializer(
-            reviews,
-            many=True,
-            fields=[
-                "id",
-                "product",
-                "rating",
-                "comment",
-                "is_active",
-                "created_at",
-                "updated_at",
-            ],
-        )
+        queryset = self.filter_queryset(self.get_queryset())
+
+        serializer_fields = [
+            "id",
+            "product",
+            "rating",
+            "comment",
+            "created_at",
+            "updated_at",
+        ]
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, fields=serializer_fields)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True, fields=serializer_fields)
         return Response(serializer.data)
