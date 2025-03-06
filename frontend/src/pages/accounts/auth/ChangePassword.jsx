@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Label, TextInput } from "flowbite-react";
-import AuthLayout from "../../../layouts/AuthLayout";
+import AuthLayout from "../../../components/layouts/AuthLayout";
 
 function ChangePassword() {
   return (

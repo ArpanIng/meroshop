@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Breadcrumb } from "flowbite-react";
 import {
   HiHome,
@@ -13,26 +13,10 @@ import {
   HiOutlineStar,
 } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import { fetchUserProfile } from "../../services/api/userApi";
+import { useAuth } from "../../contexts/AuthContext";
 
 function Profile() {
-  const [userData, setUserData] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  const getUserProfile = async () => {
-    const data = await fetchUserProfile();
-    setUserData(data);
-    try {
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getUserProfile();
-  }, []);
+  const { user } = useAuth();
 
   return (
     <>
@@ -93,12 +77,12 @@ function Profile() {
                 <div className="flex space-x-4">
                   <img
                     className="h-16 w-16 rounded-lg"
-                    src={userData.avatar}
-                    alt={`${userData.username} avatar`}
+                    src={user.avatar}
+                    alt={`${user.username} avatar`}
                   />
                   <div>
                     <h2 className="flex items-center text-xl font-bold leading-none text-gray-900 dark:text-white sm:text-2xl">
-                      {userData.firstName} {userData.lastName}
+                      {user.firstName} {user.lastName}
                     </h2>
                   </div>
                 </div>
@@ -108,7 +92,7 @@ function Profile() {
                   </dt>
                   <dd className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
                     <HiMail className="hidden h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500 lg:inline" />
-                    {userData.email}
+                    {user.email}
                   </dd>
                 </dl>
                 <dl>

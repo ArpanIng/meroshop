@@ -8,11 +8,11 @@ import DashboardTableSearchForm from "../../components/DashboardTableSearchForm"
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import Loading from "../../components/Loading";
 import Pagination from "../../components/Pagination";
+import DashboardMainLayout from "../../components/layouts/DashboardMainLayout";
 import DeletePopupModal from "../../components/modals/DeletePopupModal";
 import VendorFormModal from "../../components/modals/VendorFormModal";
 import DashboardButton from "../../components/ui/DashboardButton";
 import { useChoices } from "../../contexts/ChoicesContext";
-import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { fetchVendorUsers } from "../../services/api/userApi";
 import {
   createVendor,
@@ -74,20 +74,15 @@ function VendorList() {
       setVendorsCount(data.count);
     } catch (error) {
       console.error("Error fetching vendors:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const getVendorUsers = async () => {
-    setLoading(true);
     try {
       const data = await fetchVendorUsers();
       setVendorUsers(data);
     } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
+      console.error("Error fetching vendor users:", error);
     }
   };
 
@@ -97,6 +92,7 @@ function VendorList() {
   };
 
   const openVendorEditModal = async (vendorId) => {
+    setLoading(true);
     try {
       const data = await fetchVendor(vendorId);
       setVendor(data);
@@ -117,7 +113,7 @@ function VendorList() {
     e.preventDefault();
     setSearchParams(searchQuery ? { q: searchQuery } : {});
     if (searchQuery.trim()) {
-      // fetch vendors based on user submitted query
+      // fetch vendors filtered by the search query
       getVendors(searchQuery);
     }
   };
@@ -126,20 +122,16 @@ function VendorList() {
     // convert values to snake_case
     const formData = humps.decamelizeKeys(data);
     try {
+      let response;
       if (vendor) {
-        const response = await updateVendor(vendor.id, formData);
-        if (response.status === 200) {
-          setOpenModal(false);
-          actions.resetForm();
-          getVendors();
-        }
+        response = await updateVendor(vendor.id, formData);
       } else {
-        const response = await createVendor(formData);
-        if (response.status === 201) {
-          setOpenModal(false);
-          actions.resetForm();
-          getVendors();
-        }
+        response = await createVendor(formData);
+      }
+      if (response.status === 200 || response.status === 201) {
+        setOpenModal(false);
+        actions.resetForm();
+        getVendors();
       }
     } catch (error) {
       console.error("Error submiting vendor data:", error);
@@ -148,9 +140,15 @@ function VendorList() {
         // map backend errors to formik
         const errors = {};
         Object.keys(errorData).forEach((field) => {
-          // convert the error data field into camelcase
-          const camelCaseField = humps.camelize(field);
-          errors[camelCaseField] = errorData[field].join("");
+          // handle non-field errors
+          if (field === "non_field_errors") {
+            errors.nonFieldErrors = errorData[field].join("");
+          } else {
+            // handle field errors
+            // convert the error field to match formik initialValues
+            const camelCaseField = humps.camelize(field);
+            errors[camelCaseField] = errorData[field].join("");
+          }
         });
         actions.setErrors(errors); // Set backend errors in Formik
       } else {
@@ -171,10 +169,14 @@ function VendorList() {
     setOpenDeleteModal(false);
   };
 
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([getVendors(searchQuery), getVendorUsers()]);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    // fetch initial vendors with an empty query
-    getVendors(searchQuery);
-    getVendorUsers();
+    fetchData();
   }, [currentPage]);
 
   return (
@@ -256,7 +258,6 @@ function VendorList() {
                               <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
                                 <DashboardButton
                                   icon={HiPencil}
-                                  label="Edit"
                                   onClick={() => {
                                     openVendorEditModal(vendor.id);
                                   }}
@@ -266,7 +267,6 @@ function VendorList() {
                                 <DashboardButton
                                   icon={HiTrash}
                                   color="red"
-                                  label="Delete"
                                   onClick={() => {
                                     openVendorDeleteModal(vendor.id);
                                   }}

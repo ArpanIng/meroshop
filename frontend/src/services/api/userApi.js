@@ -1,5 +1,15 @@
 import api from "./endpoint";
 
+export const login_user = async (data) => {
+  const response = await api.post("/api/token/", data);
+  return response;
+};
+
+export const register_user = async (data) => {
+  const response = await api.post("/api/auth/register/", data);
+  return response;
+};
+
 export const fetchUsers = async () => {
   try {
     const response = await api.get("/api/users/");
@@ -11,6 +21,12 @@ export const fetchUsers = async () => {
 };
 
 export const fetchUserProfile = async () => {
+  const response = await api.get("/api/users/me/");
+  return response.data;
+};
+
+// endpoint to retrieve the authenticated user
+export const fetchUser = async () => {
   const response = await api.get("/api/users/me/");
   return response.data;
 };
@@ -30,11 +46,22 @@ export const fetchVendorUsers = async () => {
   }
 };
 
-export const fetchUserReviews = async (rating) => {
+export const fetchUserReviews = async (rating, limit, offset) => {
   try {
-    const response = await api.get("/api/users/me/reviews/", {
-      params: { rating: rating },
-    });
+    const params = {};
+    // check if rating is passed (not empty or null)
+    if (rating) {
+      params.rating = rating;
+    }
+
+    if (limit) {
+      params.limit = limit;
+    }
+
+    if (offset) {
+      params.offset = offset;
+    }
+    const response = await api.get("/api/users/me/reviews/", { params });
     return response.data;
   } catch (error) {
     console.error("Error fetching request user reviews:", error);

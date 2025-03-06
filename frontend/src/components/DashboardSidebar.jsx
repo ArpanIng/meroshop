@@ -2,6 +2,7 @@ import React from "react";
 import {
   HiArchive,
   HiOfficeBuilding,
+  HiShoppingCart,
   HiStar,
   HiUserGroup,
   HiViewGridAdd,
@@ -82,6 +83,9 @@ function DashboardSidebar() {
           </li>
         </ul>
         <ul className="pt-5 mt-5 space-y-2 border-t border-gray-200 dark:border-gray-700">
+          <h2 class="mb-2 text-sm font-semibold text-gray-500 dark:text-white">
+            Products
+          </h2>
           <li>
             <NavLink
               to="/admin/categories"
@@ -109,6 +113,11 @@ function DashboardSidebar() {
               <span className="ml-3">Reviews</span>
             </NavLink>
           </li>
+        </ul>
+        <ul className="pt-5 mt-5 space-y-2 border-t border-gray-200 dark:border-gray-700">
+          <h2 class="mb-2 text-sm font-semibold text-gray-500 dark:text-white">
+            Vendors
+          </h2>
           <li>
             <NavLink
               to="/admin/vendors"
@@ -116,6 +125,20 @@ function DashboardSidebar() {
             >
               <HiOfficeBuilding className="w-6 h-6 text-gray-500" />
               <span className="ml-3">Vendors</span>
+            </NavLink>
+          </li>
+        </ul>
+        <ul className="pt-5 mt-5 space-y-2 border-t border-gray-200 dark:border-gray-700">
+          <h2 class="mb-2 text-sm font-semibold text-gray-500 dark:text-white">
+            Carts
+          </h2>
+          <li>
+            <NavLink
+              to="/admin/carts"
+              className={({ isActive }) => navLinkClass(isActive)}
+            >
+              <HiShoppingCart className="w-6 h-6 text-gray-500" />
+              <span className="ml-3">Carts</span>
             </NavLink>
           </li>
         </ul>

@@ -1,5 +1,5 @@
 import React from "react";
-import DashboardMainLayout from "../../layouts/DashboardMainLayout";
+import DashboardMainLayout from "../../components/layouts/DashboardMainLayout";
 
 function VendorDashboard() {
   return (

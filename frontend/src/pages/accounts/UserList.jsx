@@ -13,7 +13,7 @@ import {
 import { Table } from "flowbite-react";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import Loading from "../../components/Loading";
-import DashboardMainLayout from "../../layouts/DashboardMainLayout";
+import DashboardMainLayout from "../../components/layouts/DashboardMainLayout";
 import api from "../../services/api/endpoint";
 import { formatDate } from "../../utils/formatting";
 import IconBadge from "../../components/IconBadge";

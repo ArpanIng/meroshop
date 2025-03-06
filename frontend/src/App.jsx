@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Slide, ToastContainer } from "react-toastify";
 import AuthProvider from "./contexts/AuthContext";
-import MainLayout from "./layouts/MainLayout";
+import MainLayout from "./components/layouts/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import Home from "./pages/Home";
@@ -26,6 +26,7 @@ import ReviewList from "./pages/products/ReviewList";
 import VendorList from "./pages/vendors/VendorList";
 import CartProvider from "./contexts/CartContext";
 import ChoicesProvider from "./contexts/ChoicesContext";
+import CartList from "./pages/carts/CartList";
 
 function App() {
   return (
@@ -78,7 +79,14 @@ function App() {
               }
             />
             <Route path="/users/reviews/" element={<UserReviewList />} />
-            <Route path="/cart" element={<Cart />} />
+            <Route
+              path="/cart"
+              element={
+                <CartProvider>
+                  <Cart />
+                </CartProvider>
+              }
+            />
             <Route
               path="/settings"
               element={
@@ -135,6 +143,10 @@ function App() {
                   </ChoicesProvider>
                 }
               />
+            </Route>
+            {/* cart routes */}
+            <Route path="carts">
+              <Route index element={<CartList />} />
             </Route>
           </Route>
         </Routes>

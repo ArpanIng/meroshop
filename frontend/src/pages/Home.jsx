@@ -1,12 +1,12 @@
 import React from "react";
 import Hero from "../components/Hero";
-import ProductCard from "../components/ProductCard";
+import ProductsHome from "../components/ProductsHome";
 
 function Home() {
   return (
     <div>
       <Hero />
-      <ProductCard />
+      <ProductsHome />
     </div>
   );
 }

@@ -51,7 +51,12 @@ function ProductFormModal({
         {isEditMode ? "Edit product" : "Add a new product"}
       </Modal.Header>
       <Modal.Body>
-        <form class="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          {errors.nonFieldErrors && (
+            <p className="text-sm text-red-600 dark:text-red-500">
+              {errors.nonFieldErrors}
+            </p>
+          )}
           <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
             {/* Name field */}
             <div className="sm:col-span-2">

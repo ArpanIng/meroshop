@@ -6,10 +6,10 @@ import { useSearchParams } from "react-router-dom";
 import DashboardTableSearchForm from "../../components/DashboardTableSearchForm";
 import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import Loading from "../../components/Loading";
+import DashboardMainLayout from "../../components/layouts/DashboardMainLayout";
 import DeletePopupModal from "../../components/modals/DeletePopupModal";
 import CategoryFormModal from "../../components/modals/CategoryFormModal";
 import DashboardButton from "../../components/ui/DashboardButton";
-import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import {
   createCategory,
   deleteCategory,
@@ -38,7 +38,7 @@ function CategoryList() {
     name: category?.name || "",
   };
 
-  const getCategories = async (searchQuery) => {
+  const getCategories = async () => {
     try {
       const data = await fetchCategories(searchQuery);
       setCategories(data);
@@ -55,6 +55,7 @@ function CategoryList() {
   };
 
   const openCategoryEditModal = async (categorySlug) => {
+    setLoading(true);
     try {
       const data = await fetchCategory(categorySlug);
       setCategory(data);
@@ -73,29 +74,30 @@ function CategoryList() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSearchParams(searchQuery ? { q: searchQuery } : {});
+
     if (searchQuery.trim()) {
-      // fetch categories based on user submitted query
+      setSearchParams({ q: searchQuery });
+      // fetch categories filtered by the search query
       getCategories(searchQuery);
+    } else {
+      // Handle empty query
+      setSearchParams({});
+      getCategories("");
     }
   };
 
   const handleSubmit = async (data, actions) => {
     try {
+      let response;
       if (category) {
-        const response = await updateCategory(category.slug, data);
-        if (response.status === 200) {
-          setOpenModal(false);
-          actions.resetForm();
-          getCategories();
-        }
+        response = await updateCategory(category.slug, data);
       } else {
-        const response = await createCategory(data);
-        if (response.status === 201) {
-          setOpenModal(false);
-          getCategories();
-          actions.resetForm();
-        }
+        response = await createCategory(data);
+      }
+      if (response.status === 200 || response.status === 201) {
+        setOpenModal(false);
+        getCategories();
+        actions.resetForm();
       }
     } catch (error) {
       console.error("Error submiting category data:", error);
@@ -104,7 +106,7 @@ function CategoryList() {
         // map backend errors to formik
         const errors = {};
         Object.keys(errorData).forEach((field) => {
-          // convert the error data field into camelcase
+          // convert error field to camelCase to match formik initialValues
           const camelCaseField = humps.camelize(field);
           errors[camelCaseField] = errorData[field].join("");
         });
@@ -131,7 +133,7 @@ function CategoryList() {
 
   useEffect(() => {
     // fetch initial categories with an empty query
-    getCategories(searchQuery);
+    getCategories();
   }, []);
 
   return (
@@ -193,7 +195,6 @@ function CategoryList() {
                               <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
                                 <DashboardButton
                                   icon={HiPencil}
-                                  label="Edit"
                                   onClick={() => {
                                     openCategoryEditModal(category.slug);
                                   }}
@@ -203,7 +204,6 @@ function CategoryList() {
                                 <DashboardButton
                                   icon={HiTrash}
                                   color="red"
-                                  label="Delete"
                                   onClick={() => {
                                     openCategoryDeleteModal(category.slug);
                                   }}

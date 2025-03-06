@@ -5,7 +5,7 @@ export const fetchReviews = async () => {
   return response.data;
 };
 
-export const fetchReview = async () => {
+export const fetchReview = async (reviewId) => {
   const response = await api.get(`/api/reviews/${reviewId}/`);
   return response.data;
 };

@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 
-export const reviewValidationSchema = Yup.object({
+export const userReviewValidationSchema = Yup.object({
   rating: Yup.number()
     .min(1, "Rating must be at least 1")
     .max(5, "Rating cannot exceed 5")

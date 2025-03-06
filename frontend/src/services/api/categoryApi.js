@@ -1,5 +1,14 @@
 import api from "./endpoint";
 
+// export const fetchCategories = async (searchQuery) => {
+//   const params = {};
+//   if (searchQuery) {
+//     params.q = searchQuery;
+//   }
+//   const response = await api.get("/api/categories/", { params });
+//   return response.data;
+// };
+
 export const fetchCategories = async (searchQuery) => {
   const response = await api.get("/api/categories/", {
     params: { q: searchQuery },

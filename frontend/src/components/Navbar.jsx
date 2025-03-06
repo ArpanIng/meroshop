@@ -65,7 +65,7 @@ function Navbar() {
             >
               <span className="sr-only">Cart</span>
               <HiOutlineShoppingCart className="w-5 h-5" />
-              <span class="inline-flex items-center justify-center w-4 h-4 ms-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">
+              <span className="inline-flex items-center justify-center w-4 h-4 ms-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">
                 2
               </span>
             </Link>

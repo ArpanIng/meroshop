@@ -9,11 +9,11 @@ import DashboardTableNoDataRow from "../../components/DashboardTableNoDataRow";
 import Loading from "../../components/Loading";
 import Pagination from "../../components/Pagination";
 import StarRating from "../../components/StarRating";
+import DashboardMainLayout from "../../components/layouts/DashboardMainLayout";
 import DeletePopupModal from "../../components/modals/DeletePopupModal";
 import ProductFormModal from "../../components/modals/ProductFormModal";
 import DashboardButton from "../../components/ui/DashboardButton";
 import { useChoices } from "../../contexts/ChoicesContext";
-import DashboardMainLayout from "../../layouts/DashboardMainLayout";
 import { fetchCategories } from "../../services/api/categoryApi";
 import {
   createProduct,
@@ -44,6 +44,12 @@ function ProductList() {
   const search = searchParams.get("q");
   const [searchQuery, setSearchQuery] = useState(search || "");
 
+  // filters
+  const categoryFilterParam = searchParams.get("category");
+  const [category, setCategory] = useState(categoryFilterParam || "");
+
+  console.log("category", category);
+
   // product table pagination
   const PRODUCTS_PER_PAGE = 50;
   const page = searchParams.get("page");
@@ -72,39 +78,36 @@ function ProductList() {
     status: selectedStatusOptionValue,
   };
 
-  const getProducts = async (searchQuery) => {
+  const getProducts = async () => {
     try {
-      const data = await fetchProducts(searchQuery, PRODUCTS_PER_PAGE, offset);
+      const data = await fetchProducts(
+        searchQuery,
+        PRODUCTS_PER_PAGE,
+        offset,
+        category
+      );
       setProducts(data.results);
       setProductsCount(data.count);
     } catch (error) {
       console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const getCategories = async () => {
-    setLoading(true);
     try {
       const data = await fetchCategories();
       setCategories(data);
     } catch (error) {
       console.error("Error fetching categories:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const getVendors = async () => {
-    setLoading(true);
     try {
       const data = await fetchVendors();
       setVendors(data.results);
     } catch (error) {
       console.error("Error fetching vendors:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -114,6 +117,7 @@ function ProductList() {
   };
 
   const openProductEditModal = async (productSlug) => {
+    setLoading(true);
     try {
       const data = await fetchProduct(productSlug);
       setProduct(data);
@@ -132,10 +136,10 @@ function ProductList() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSearchParams(searchQuery ? { q: searchQuery } : {});
     if (searchQuery.trim()) {
-      // fetch products based on user submitted query
-      getProducts(searchQuery);
+      setSearchParams({ q: searchQuery });
+      // fetch products filtered by the search query
+      getProducts();
     }
   };
 
@@ -155,20 +159,16 @@ function ProductList() {
     formData.append("status", data.status);
 
     try {
+      let response;
       if (product) {
-        const response = await updateProduct(product.slug, formData);
-        if (response.status === 200) {
-          setOpenModal(false);
-          actions.resetForm();
-          getProducts();
-        }
+        response = await updateProduct(product.slug, formData);
       } else {
-        const response = await createProduct(formData);
-        if (response.status === 201) {
-          setOpenModal(false);
-          actions.resetForm();
-          getProducts();
-        }
+        response = await createProduct(formData);
+      }
+      if (response.status === 200 || response.status === 201) {
+        setOpenModal(false);
+        actions.resetForm();
+        getProducts();
       }
     } catch (error) {
       console.error("Error submiting product data:", error);
@@ -177,9 +177,15 @@ function ProductList() {
         // map backend errors to formik
         const errors = {};
         Object.keys(errorData).forEach((field) => {
-          // convert the error data field into camelcase
-          const camelCaseField = humps.camelize(field);
-          errors[camelCaseField] = errorData[field].join("");
+          // handle non-field errors
+          if (field === "non_field_errors") {
+            errors.nonFieldErrors = errorData[field].join("");
+          } else {
+            // convert error field to camelCase to match formik initialValues
+            const camelCaseField = humps.camelize(field);
+            console.log("camelCaseField", camelCaseField);
+            errors[field] = errorData[field].join("");
+          }
         });
         actions.setErrors(errors); // Set backend errors in Formik
       } else {
@@ -200,12 +206,15 @@ function ProductList() {
     setOpenDeleteModal(false);
   };
 
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([getProducts(), getCategories(), getVendors()]);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    // fetch initial products with an empty query
-    getProducts(searchQuery);
-    getCategories();
-    getVendors();
-  }, [currentPage]);
+    fetchData();
+  }, [currentPage, category]);
 
   return (
     <>
@@ -217,7 +226,8 @@ function ProductList() {
                 <Loading />
               ) : (
                 <>
-                  <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+                  {/* Table search form and Add Button */}
+                  <div className="flex flex-col md:flex-row border-b-2 items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
                     <div className="w-full md:w-1/2">
                       <DashboardTableSearchForm
                         searchQuery={searchQuery}
@@ -235,6 +245,54 @@ function ProductList() {
                       />
                     </div>
                   </div>
+                  {/* Table filters */}
+                  <div className="flex flex-col md:flex-row border-b-2 items-center justify-end space-y-3 md:space-y-0 md:space-x-4 p-4">
+                    <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
+                      <label
+                        htmlFor="product-category-filter"
+                        className="sr-only"
+                      >
+                        Category
+                      </label>
+                      <select
+                        id="product-category-filter"
+                        className="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
+                        onChange={(e) => {
+                          const categoryValue = e.target.value;
+                          setCategory(categoryValue);
+                          setSearchParams({ category: categoryValue });
+                        }}
+                        value={category}
+                      >
+                        <option value="">Category</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.slug}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
+                      <label
+                        htmlFor="product-status-filter"
+                        className="sr-only"
+                      >
+                        Status
+                      </label>
+                      <select
+                        id="product-status-filter"
+                        className="block py-2.5 px-0 w-full text-sm text-gray-500 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
+                      >
+                        <option value="">Status</option>
+                        {productStatusChoices.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  {/* Table data */}
                   <div className="overflow-x-auto">
                     <Table>
                       <caption className="p-5 text-sm font-normal text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
@@ -243,7 +301,6 @@ function ProductList() {
                       </caption>
                       <Table.Head>
                         <Table.HeadCell>Product</Table.HeadCell>
-                        <Table.HeadCell>Slug</Table.HeadCell>
                         <Table.HeadCell>Category</Table.HeadCell>
                         <Table.HeadCell>Rating</Table.HeadCell>
                         <Table.HeadCell>Price</Table.HeadCell>
@@ -272,14 +329,16 @@ function ProductList() {
                                 />
                                 {product.name}
                               </Table.Cell>
-                              <Table.Cell>{product.slug}</Table.Cell>
                               <Table.Cell>
                                 <Badge color="blue">
                                   {product.category.name}
                                 </Badge>
                               </Table.Cell>
                               <Table.Cell>
-                                <StarRating ratingValue={product.rating} />
+                                <StarRating
+                                  ratingValue={product.rating}
+                                  ratingValueDisplay={true}
+                                />
                               </Table.Cell>
                               <Table.Cell>रु{product.price}</Table.Cell>
                               <Table.Cell>रु{product.discountPrice}</Table.Cell>
@@ -290,13 +349,7 @@ function ProductList() {
                                 </Badge>
                               </Table.Cell>
                               <Table.Cell>
-                                <Badge
-                                  color={
-                                    product.status === "Active"
-                                      ? "green"
-                                      : "red"
-                                  }
-                                >
+                                <Badge status={product.status}>
                                   {product.status}
                                 </Badge>
                               </Table.Cell>
@@ -309,7 +362,6 @@ function ProductList() {
                               <Table.Cell className="px-4 py-3 flex gap-2 items-center justify-end">
                                 <DashboardButton
                                   icon={HiPencil}
-                                  label="Edit"
                                   onClick={() => {
                                     openProductEditModal(product.slug);
                                   }}
@@ -319,7 +371,6 @@ function ProductList() {
                                 <DashboardButton
                                   icon={HiTrash}
                                   color="red"
-                                  label="Delete"
                                   onClick={() => {
                                     openProductDeleteModal(product.slug);
                                   }}

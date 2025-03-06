@@ -1,10 +1,10 @@
 import React from "react";
-import { Label, Modal, TextInput } from "flowbite-react";
 import { useFormik } from "formik";
+import { Checkbox, Label, Modal, Select, Textarea } from "flowbite-react";
 import PropTypes from "prop-types";
-import { categoryValidationSchema } from "../../schemas/categoryValidationSchema";
+import { userReviewValidationSchema } from "../../schemas/reviewValidationSchema";
 
-function CategoryFormModal({
+function ReviewFormModal({
   openModal,
   setOpenModal,
   initialData,
@@ -20,11 +20,10 @@ function CategoryFormModal({
     handleChange,
     handleSubmit,
     resetForm,
-    isSubmitting,
   } = useFormik({
     initialValues: initialData,
-    validationSchema: categoryValidationSchema,
-    enableReinitialize: true, // Reinitializes form values when initialValues change
+    validationSchema: userReviewValidationSchema,
+    enableReinitialize: true,
     onSubmit: (values, actions) => {
       onSubmit(values, actions);
     },
@@ -38,29 +37,63 @@ function CategoryFormModal({
   return (
     <Modal id={modalID} show={openModal} onClose={hideModal}>
       <Modal.Header>
-        {isEditMode ? "Edit category" : "Add a new category"}
+        {isEditMode ? "Edit review" : "Add a new review"}
       </Modal.Header>
       <Modal.Body>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* name field */}
+          {errors.nonFieldErrors && (
+            <p className="text-sm text-red-600 dark:text-red-500">
+              {errors.nonFieldErrors}
+            </p>
+          )}
+          {/* rating field */}
           <div>
-            <Label
-              htmlFor="name"
-              value="Category name"
-              className="block mb-2"
-            />
-            <TextInput
-              type="text"
-              id="name"
-              name="name"
-              value={values.name}
+            <Label htmlFor="rating" className="mb-2 block" value="Rating" />
+            <Select
+              id="rating"
+              value={values.rating}
               onBlur={handleBlur}
               onChange={handleChange}
-              color={touched.name && errors.name ? "failure" : "gray"}
+              color={touched.rating && errors.rating ? "failure" : "gray"}
               helperText={
                 <>
-                  {touched.name && errors.name ? (
-                    <span>{errors.name}</span>
+                  {touched.rating && errors.rating ? (
+                    <span>{errors.rating}</span>
+                  ) : null}
+                </>
+              }
+              required
+            >
+              <option value="" disabled>
+                All stars
+              </option>
+              <option value="5">5 stars</option>
+              <option value="4">4 stars</option>
+              <option value="3">3 stars</option>
+              <option value="2">2 stars</option>
+              <option value="1">1 star</option>
+            </Select>
+          </div>
+          {/* comment field */}
+          <div>
+            <Label
+              htmlFor="comment"
+              value="Review comment"
+              className="mb-2 block"
+            />
+            <Textarea
+              id="comment"
+              name="comment"
+              className="mb-2"
+              rows={6}
+              value={values.comment}
+              onBlur={handleBlur}
+              onChange={handleChange}
+              color={touched.comment && errors.comment ? "failure" : "gray"}
+              helperText={
+                <>
+                  {touched.comment && errors.comment ? (
+                    <span>{errors.comment}</span>
                   ) : null}
                 </>
               }
@@ -80,9 +113,8 @@ function CategoryFormModal({
               type="submit"
               className="me-2 inline-flex items-center rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               data-modal-hide={modalID}
-              disabled={isSubmitting}
             >
-              {isEditMode ? "Edit category" : "Add category"}
+              {isEditMode ? "Edit review" : "Add review"}
             </button>
           </div>
         </form>
@@ -91,7 +123,7 @@ function CategoryFormModal({
   );
 }
 
-CategoryFormModal.propTypes = {
+ReviewFormModal.propTypes = {
   openModal: PropTypes.bool.isRequired,
   initialData: PropTypes.object.isRequired,
   setOpenModal: PropTypes.func.isRequired,
@@ -99,4 +131,4 @@ CategoryFormModal.propTypes = {
   modalID: PropTypes.string.isRequired,
 };
 
-export default CategoryFormModal;
+export default ReviewFormModal;

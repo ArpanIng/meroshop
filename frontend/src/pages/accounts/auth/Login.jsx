@@ -1,49 +1,90 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useFormik } from "formik";
 import { Button, Label, TextInput } from "flowbite-react";
+import { Link } from "react-router-dom";
+import AuthLayout from "../../../components/layouts/AuthLayout";
 import { useAuth } from "../../../contexts/AuthContext";
-import AuthLayout from "../../../layouts/AuthLayout";
+import { userLoginValidationSchema } from "../../../schemas/userValidationSchema";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleLogin = async (e) => {
-    setLoading(true);
-    e.preventDefault();
-    try {
-      await login(email, password);
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
+  const initialValues = {
+    email: "",
+    password: "",
   };
+
+  const {
+    values,
+    errors,
+    touched,
+    handleBlur,
+    handleChange,
+    handleSubmit,
+    isSubmitting,
+  } = useFormik({
+    initialValues,
+    validationSchema: userLoginValidationSchema,
+    onSubmit: async (values, actions) => {
+      setLoading(true);
+      try {
+        await login(values);
+      } catch (error) {
+        actions.setErrors(error);
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
 
   return (
     <AuthLayout title="Sign in to your account">
-      <form className="space-y-4 md:space-y-6" onSubmit={handleLogin}>
+      <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
+        {errors.detail && (
+          <p className="text-sm text-red-600 dark:text-red-500">
+            {errors.detail}
+          </p>
+        )}
+        {/* email field */}
         <div>
           <Label htmlFor="email" value="Email" className="block mb-2" />
           <TextInput
             type="email"
             id="email"
             placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            name="email"
+            value={values.email}
+            onChange={handleChange}
+            color={touched.email && errors.email ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.email && errors.email ? (
+                  <span>{errors.email}</span>
+                ) : null}
+              </>
+            }
           />
         </div>
+        {/* password field */}
         <div>
           <Label htmlFor="password" value="Password" className="block mb-2" />
           <TextInput
             type="password"
             id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            name="password"
+            value={values.password}
+            onChange={handleChange}
+            color={touched.password && errors.password ? "failure" : "gray"}
+            onBlur={handleBlur}
+            helperText={
+              <>
+                {touched.password && errors.password ? (
+                  <span>{errors.password}</span>
+                ) : null}
+              </>
+            }
           />
         </div>
         <div className="flex items-center justify-between">
@@ -73,7 +114,12 @@ function Login() {
             Forgot password?
           </a>
         </div>
-        <Button color="blue" type="submit" className="w-full">
+        <Button
+          color="blue"
+          type="submit"
+          className="w-full"
+          disabled={isSubmitting}
+        >
           Sign in
         </Button>
         <p className="text-sm font-light text-gray-500 dark:text-gray-400">

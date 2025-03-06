@@ -3,9 +3,9 @@ import api from "./endpoint";
 export const fetchUserCart = async () => {
   try {
     const response = await api.get("/api/carts/user/");
-    return response.data;
+    return response;
   } catch (error) {
-    console.error("Error fetching user cart:", error);
+    console.error("Error fetching user cart:", error.message);
     throw error;
   }
 };
